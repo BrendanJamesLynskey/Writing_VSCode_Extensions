@@ -45,6 +45,7 @@ Each deck is a single self-contained `index.html` — no build step, no npm, no 
 
 ## See also
 
+- [Introduction to VSCode Extensions](https://brendanjameslynskey.github.io/Introduction_to_VSCode_Extensions/) ([repo](https://github.com/BrendanJamesLynskey/Introduction_to_VSCode_Extensions)) — a single-deck overview of the same ground covered breadth-first; read it first if you want the lay of the land before this hands-on series.
 - Series hub: [Software](https://github.com/BrendanJamesLynskey/Software) — presentations, playgrounds and reference projects.
 - Companion decks in the same style: [Introduction to CI/CD](https://github.com/BrendanJamesLynskey/Introduction_to_CI_CD), [Deploying with Docker](https://github.com/BrendanJamesLynskey/Deploying_with_Docker).
 

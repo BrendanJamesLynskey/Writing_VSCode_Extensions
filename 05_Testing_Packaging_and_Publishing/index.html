@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing VS Code Extensions — Part 5: Testing, Packaging &amp; Publishing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root {
+    --amber:  #f5a623;
+    --green:  #4ecb8d;
+    --purple: #a78bfa;
+    --blue:   #60a5fa;
+    --red:    #f87171;
+    --bg:     #0a0a0f;
+    --bg2:    #10101a;
+    --bg3:    #181824;
+    --border: #2a2a3a;
+    --text:   #e8e8f0;
+    --muted:  #8888a8;
+  }
+
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { background: transparent; }
+
+  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal h1 { font-size: 1.6em; color: var(--amber); line-height: 1.1; }
+  .reveal h2 { font-size: 1.1em; color: var(--amber); margin-bottom: .2em; }
+  .reveal h3 { font-size: .78em; color: var(--green); margin-bottom: .15em; }
+  .reveal p  { font-size: .56em; line-height: 1.45; color: var(--text); }
+  .reveal li { font-size: .54em; line-height: 1.45; margin-bottom: .1em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .72em; }
+  .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
+                 border-radius: 6px; padding: .3em .5em; margin: .25em 0; }
+  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #cdd6f4; }
+
+  /* ── slide chrome ── */
+  .slide-hdr {
+    display: flex; align-items: center; gap: .4em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .2em; margin-bottom: .3em;
+  }
+  .slide-hdr .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .42em; font-weight: 500;
+    color: var(--bg); background: var(--amber);
+    padding: .1em .4em; border-radius: 3px;
+    letter-spacing: .04em;
+  }
+  .slide-hdr h2 { margin: 0; font-size: .95em; }
+
+  /* ── two-column ── */
+  .cols   { display: grid; gap: .5em; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-6040 { grid-template-columns: 6fr 4fr; }
+  .cols-4060 { grid-template-columns: 4fr 6fr; }
+
+  /* ── cards ── */
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 6px; padding: .35em .6em;
+  }
+  .card.amber { border-left: 3px solid var(--amber); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.purple{ border-left: 3px solid var(--purple); }
+  .card.blue  { border-left: 3px solid var(--blue); }
+  .card.red   { border-left: 3px solid var(--red); }
+  .card h3 { font-size: .64em; margin: 0 0 .12em; }
+  .card p  { font-size: .52em; margin: 0; color: #b8b8d0; }
+  .card ul { margin: 0; padding-left: 1em; }
+  .card li { font-size: .52em; color: #b8b8d0; margin-bottom: .02em; }
+
+  /* ── table ── */
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .5em; }
+  .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
+                     padding: .2em .4em; border: 1px solid var(--border); text-align: left; }
+  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #ccc; }
+  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+
+  /* ── accent spans ── */
+  .a  { color: var(--amber); font-weight: 600; }
+  .g  { color: var(--green); font-weight: 600; }
+  .p  { color: var(--purple); font-weight: 600; }
+  .b  { color: var(--blue); font-weight: 600; }
+  .r  { color: var(--red); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── SVG graph diagrams ── */
+  svg.diagram { display: block; margin: 0 auto; overflow: visible; }
+
+  /* ── pill badges ── */
+  .pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: .44em; padding: .08em .4em; border-radius: 99px;
+    border: 1px solid; margin: 0 .08em;
+  }
+  .pill.amber { color: var(--amber); border-color: var(--amber); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.purple{ color: var(--purple); border-color: var(--purple); }
+  .pill.blue  { color: var(--blue); border-color: var(--blue); }
+
+  /* ── footer — hidden; was overlapping scrollable content ── */
+  .reveal .slide-footer { display: none; }
+  /* title slide special */
+  .title-slide h1 { font-size: 1.8em; }
+  .title-slide .subtitle {
+    font-size: .7em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-weight: 300; letter-spacing: .04em; margin: .3em 0 .6em;
+  }
+  .title-slide .meta { font-size: .48em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── super-step animator ── */
+  .ss-row {
+    display: flex; gap: .25em; align-items: center;
+    margin: .1em 0; font-size: .55em; font-family: 'JetBrains Mono', monospace;
+  }
+  .ss-node {
+    padding: .2em .55em; border-radius: 5px; font-size: .9em;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  }
+  .ss-node.active { background: #1a2a1a; border-color: var(--green); color: var(--green); }
+  .ss-node.done   { background: #1a1a2a; border-color: var(--purple); color: var(--purple); }
+  .ss-arrow { color: var(--amber); }
+  .ss-label { font-size: .8em; color: var(--muted); margin-left: .3em; }
+
+  /* reduce default margins */
+  .reveal ul, .reveal ol { margin: .15em 0 .15em 1em; }
+.reveal .slides > section { display: flex !important; flex-direction: column !important; overflow-y: auto !important; align-items: stretch !important; justify-content: flex-start !important; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+
+<!-- ═══════════════════════════════ SLIDE 01 — TITLE ═══════════════════════════════ -->
+<section class="title-slide" data-background-color="#0a0a0f">
+  <div style="text-align:left; max-width:820px; margin:0 auto; padding: 1em 0;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">
+      TUTORIAL SERIES &middot; PART 5 OF 5
+    </div>
+    <h1>Writing VS Code<br>Extensions</h1>
+    <div class="subtitle">Part 5 &mdash; Testing, Packaging &amp; Publishing</div>
+    <div style="width:60px; height:3px; background:var(--amber); margin-bottom:1.4em;"></div>
+    <div style="display:flex; gap:1.2em; flex-wrap:wrap; margin-bottom:1em;">
+      <span class="pill amber">Tests</span>
+      <span class="pill green">vsce</span>
+      <span class="pill purple">Marketplace</span>
+      <span class="pill blue">Open VSX</span>
+      <span class="pill amber">CI/CD</span>
+    </div>
+    <div class="ss-row" style="margin-top:0.6em;">
+      <span class="ss-node active">Test</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node active">Package (.vsix)</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node done">Publish</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node done">CI/CD</span>
+    </div>
+    <p style="max-width:640px; color:#a0a0c0; font-size:.56em; line-height:1.5; margin-top:1em;">
+      The final part &mdash; take a working extension from local code to the Marketplace and Open VSX, with automated tests and a release pipeline that ships it for you.
+    </p>
+    <div class="meta" style="margin-top:1.4em;">
+      Test &nbsp;&middot;&nbsp; Package &nbsp;&middot;&nbsp; Publish &nbsp;&middot;&nbsp; Automate
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 02 — AGENDA ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">01</span>
+    <h2>Topics</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Testing</h3>
+        <ul>
+          <li>The release pipeline overview</li>
+          <li>Test setup &mdash; <code>@vscode/test-cli</code></li>
+          <li>Writing &amp; running tests</li>
+          <li>Linting &amp; type-checking</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:0.5em;">
+        <h3 class="g">Bundling &amp; Packaging</h3>
+        <ul>
+          <li>Bundling with esbuild</li>
+          <li>The <code>.vscodeignore</code> file</li>
+          <li>Building a <code>.vsix</code> with vsce</li>
+          <li>Required manifest fields</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Publishing</h3>
+        <ul>
+          <li>Marketplace publisher &amp; Azure PAT</li>
+          <li>Publishing &amp; version bumps</li>
+          <li>The Open VSX Registry</li>
+          <li>Dual-publishing strategy</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:0.5em;">
+        <h3 class="b">Automation &amp; Recap</h3>
+        <ul>
+          <li>CI/CD with GitHub Actions</li>
+          <li>Release best practices</li>
+          <li>The full 5-part series recap</li>
+          <li>Where to go next</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 03 — RELEASE PIPELINE OVERVIEW ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">02</span>
+    <h2>The Release Pipeline</h2>
+  </div>
+  <p>From source to two registries: each stage gates the next, and <span class="a">CI/CD</span> wraps the whole thing so a git tag ships your extension automatically.</p>
+  <svg class="diagram" viewBox="0 0 900 280" width="900" height="280">
+    <!-- CI wrapper -->
+    <rect x="8" y="40" width="884" height="160" rx="8" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="5"/>
+    <text x="450" y="32" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display" font-size="14" font-weight="700">CI/CD — GitHub Actions (on tag push)</text>
+    <!-- Stage boxes -->
+    <rect x="22" y="95" width="98" height="50" rx="5" fill="#181824" stroke="#f5a623" stroke-width="1.2"/>
+    <text x="71" y="118" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Code</text>
+    <text x="71" y="133" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">src/*.ts</text>
+    <line x1="120" y1="120" x2="148" y2="120" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowAmber)"/>
+
+    <rect x="150" y="95" width="98" height="50" rx="5" fill="#181824" stroke="#4ecb8d" stroke-width="1.2"/>
+    <text x="199" y="116" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Lint /</text>
+    <text x="199" y="130" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Compile</text>
+    <line x1="248" y1="120" x2="276" y2="120" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowGreen)"/>
+
+    <rect x="278" y="95" width="98" height="50" rx="5" fill="#181824" stroke="#4ecb8d" stroke-width="1.2"/>
+    <text x="327" y="118" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">Test</text>
+    <text x="327" y="133" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Ext. Host</text>
+    <line x1="376" y1="120" x2="404" y2="120" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#arrowGreen)"/>
+
+    <rect x="406" y="95" width="98" height="50" rx="5" fill="#181824" stroke="#f5a623" stroke-width="1.2"/>
+    <text x="455" y="118" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="10">Bundle</text>
+    <text x="455" y="133" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">esbuild</text>
+    <line x1="504" y1="120" x2="532" y2="120" stroke="#f5a623" stroke-width="1.2" marker-end="url(#arrowAmber)"/>
+
+    <rect x="534" y="95" width="110" height="50" rx="5" fill="#181824" stroke="#a78bfa" stroke-width="1.2"/>
+    <text x="589" y="116" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">Package</text>
+    <text x="589" y="133" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">vsce → .vsix</text>
+    <line x1="644" y1="120" x2="672" y2="120" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#arrowPurple)"/>
+
+    <!-- Publish fan-out -->
+    <rect x="674" y="68" width="200" height="44" rx="5" fill="#181824" stroke="#f5a623" stroke-width="1.2"/>
+    <text x="774" y="86" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">VS Marketplace</text>
+    <text x="774" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">vsce publish</text>
+    <rect x="674" y="128" width="200" height="44" rx="5" fill="#181824" stroke="#4ecb8d" stroke-width="1.2"/>
+    <text x="774" y="146" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">Open VSX Registry</text>
+    <text x="774" y="160" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">ovsx publish</text>
+    <line x1="644" y1="112" x2="672" y2="92" stroke="#a78bfa" stroke-width="1" marker-end="url(#arrowPurple)"/>
+    <line x1="644" y1="128" x2="672" y2="148" stroke="#a78bfa" stroke-width="1" marker-end="url(#arrowPurple)"/>
+
+    <text x="450" y="224" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">git tag v1.0.0 → push → the pipeline runs end-to-end with no manual steps</text>
+    <defs>
+      <marker id="arrowAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f5a623"/></marker>
+      <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
+      <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#a78bfa"/></marker>
+    </defs>
+  </svg>
+  <div class="cols cols-3" style="margin-top:.3em;">
+    <div class="card amber">
+      <h3 class="a">Test</h3>
+      <p>Run automated tests inside a real VS Code Extension Host before anything ships.</p>
+    </div>
+    <div class="card purple">
+      <h3 class="p">Package</h3>
+      <p>Bundle, then build a single <code>.vsix</code> archive &mdash; the unit of distribution.</p>
+    </div>
+    <div class="card green">
+      <h3 class="g">Publish</h3>
+      <p>Push the same <code>.vsix</code> to both the Marketplace and Open VSX for full reach.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 04 — TESTING SETUP ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">03</span>
+    <h2>Testing Setup</h2>
+  </div>
+  <p>VS Code tests run inside a <span class="a">real, downloaded copy of VS Code</span> &mdash; your test code executes in the Extension Host with the full <code>vscode</code> API available.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-jsonc">// .vscode-test.mjs
+import { defineConfig } from '@vscode/test-cli';
+
+export default defineConfig({
+  // glob(s) for your compiled test files
+  files: 'out/test/**/*.test.js',
+  // which VS Code build to download &amp; run
+  version: 'stable',         // or 'insiders', '1.90.0'
+  // workspace to open for the tests
+  workspaceFolder: './sampleWorkspace',
+  mocha: {
+    ui: 'tdd',               // suite() / test()
+    timeout: 20000,
+  },
+});</code></pre>
+      <pre><code class="language-json">// package.json — scripts
+{
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile &amp;&amp; npm run lint",
+    "test": "vscode-test"
+  }
+}</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a"><code>@vscode/test-cli</code></h3>
+        <p>The test runner. Reads <code>.vscode-test.mjs</code>, drives Mocha, and exposes the <code>vscode-test</code> command.</p>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g"><code>@vscode/test-electron</code></h3>
+        <p>Downloads the requested VS Code build and launches it with your extension loaded. Used under the hood by the CLI.</p>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Install</h3>
+        <pre><code class="language-bash">npm i -D @vscode/test-cli \
+         @vscode/test-electron \
+         mocha @types/mocha</code></pre>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Why a real VS Code?</h3>
+        <p>The API only exists inside the host. Tests exercise commands, editors and the workspace exactly as users do.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 05 — WRITING TESTS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">04</span>
+    <h2>Writing Tests</h2>
+  </div>
+  <p>Import <code>* as vscode</code> and <code>* as assert</code>, then drive the real API &mdash; open documents, run your commands, and assert on the result.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-typescript">// src/test/extension.test.ts
+import * as assert from 'assert';
+import * as vscode from 'vscode';
+
+suite('My Extension Test Suite', () =&gt; {
+
+  test('command is registered', async () =&gt; {
+    const cmds = await vscode.commands.getCommands(true);
+    assert.ok(cmds.includes('myExt.helloWorld'));
+  });
+
+  test('command shows a message', async () =&gt; {
+    // run the command the user would invoke
+    await vscode.commands.executeCommand('myExt.helloWorld');
+    // (assert on side-effects / state here)
+  });
+
+  test('opens and edits a document', async () =&gt; {
+    const doc = await vscode.workspace.openTextDocument({
+      content: 'hello',
+      language: 'plaintext',
+    });
+    const editor = await vscode.window.showTextDocument(doc);
+    await editor.edit(b =&gt;
+      b.insert(new vscode.Position(0, 5), ' world'));
+    assert.strictEqual(doc.getText(), 'hello world');
+  });
+});</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Anatomy</h3>
+        <ul>
+          <li><code>suite()</code> groups related tests</li>
+          <li><code>test()</code> is one case (Mocha TDD UI)</li>
+          <li><code>suiteSetup</code> / <code>teardown</code> for fixtures</li>
+          <li>Async/await throughout &mdash; the API is promise-based</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">What to assert</h3>
+        <ul>
+          <li>Commands are contributed &amp; runnable</li>
+          <li>Edits land in the document</li>
+          <li>Diagnostics / completions appear</li>
+          <li>Configuration is read correctly</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Tip</h3>
+        <p>Use <code>vscode.extensions.getExtension(id)?.activate()</code> if a test needs activation before the API is ready.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 06 — RUNNING TESTS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">05</span>
+    <h2>Running Tests</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <pre><code class="language-bash"># Local run — compiles, lints, then tests
+npm test
+
+# Or invoke the runner directly
+npx vscode-test
+
+# Run against a specific build / label
+npx vscode-test --label unit
+
+# On Linux CI there is no display server,
+# so wrap the runner in a virtual one:
+xvfb-run -a npm test</code></pre>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Headless on CI</h3>
+        <p>VS Code is an Electron app and needs a display. On Linux runners use <code>xvfb-run</code> to provide a virtual framebuffer. macOS and Windows runners need no wrapper.</p>
+      </div>
+      <div class="card amber" style="margin-top:.4em;">
+        <h3 class="a">Debugging tests</h3>
+        <p>The Extension Test Runner extension and a <code>launch.json</code> "Extension Tests" config let you set breakpoints in the host.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3 class="g">Integration tests</h3>
+        <ul>
+          <li>Run inside the Extension Host</li>
+          <li>Full <code>vscode</code> API available</li>
+          <li>Slower &mdash; download + launch VS Code</li>
+          <li>Best for command / editor behaviour</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Unit tests</h3>
+        <ul>
+          <li>Plain Mocha/Jest &mdash; no VS Code</li>
+          <li>Import pure helper modules directly</li>
+          <li>Fast; mock the <code>vscode</code> module</li>
+          <li>Best for parsers, utils, business logic</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.4em;">
+        <h3 class="a">Split your code</h3>
+        <p>Keep logic out of <code>activate()</code> in pure modules &mdash; you can then unit-test most of it without launching VS Code, and reserve integration tests for the API surface.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 07 — LINTING & COMPILING ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">06</span>
+    <h2>Linting &amp; Compiling</h2>
+  </div>
+  <p>Catch problems before they ship: <span class="a">lint</span> for style and common bugs, <span class="g">type-check</span> for correctness. Wire both into <code>pretest</code> so <code>npm test</code> always validates first.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-json">// package.json — scripts
+{
+  "scripts": {
+    "lint": "eslint src --ext ts",
+    "check-types": "tsc --noEmit",
+    "compile": "tsc -p ./",
+    "pretest": "npm run compile &amp;&amp; npm run lint",
+    "test": "vscode-test"
+  }
+}</code></pre>
+      <pre><code class="language-javascript">// eslint.config.mjs (flat config)
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  ...tseslint.configs.recommended,
+  {
+    rules: {
+      'no-console': 'warn',
+      '@typescript-eslint/no-unused-vars': 'error',
+    },
+  },
+);</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a"><code>eslint</code></h3>
+        <p>Lints TypeScript via <code>typescript-eslint</code>. The generator scaffolds a flat <code>eslint.config.mjs</code> for you.</p>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g"><code>tsc --noEmit</code></h3>
+        <p>Type-checks without producing output &mdash; fast, perfect for CI when a bundler (not <code>tsc</code>) emits the JS.</p>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p"><code>pretest</code> hook</h3>
+        <p>npm runs any <code>pre&lt;script&gt;</code> automatically. <code>pretest</code> compiles &amp; lints, so a failing lint fails the test run.</p>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Gate the release</h3>
+        <p>Run the same <code>lint</code> + <code>check-types</code> in CI before packaging &mdash; never publish code that doesn't type-check.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 08 — BUNDLING ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">07</span>
+    <h2>Bundling</h2>
+  </div>
+  <p>Bundle your extension into <span class="a">a single file</span> before packaging. Fewer files means a smaller <code>.vsix</code>, faster install, and faster activation.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-bash"># One-off production bundle with esbuild
+esbuild src/extension.ts \
+  --bundle \
+  --outfile=dist/extension.js \
+  --external:vscode \
+  --format=cjs \
+  --platform=node \
+  --minify</code></pre>
+      <pre><code class="language-json">// package.json
+{
+  "main": "./dist/extension.js",
+  "scripts": {
+    "esbuild-base": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "watch": "npm run esbuild-base -- --sourcemap --watch"
+  }
+}</code></pre>
+    </div>
+    <div>
+      <div class="card red">
+        <h3 class="r">Unbundled</h3>
+        <p>Hundreds of files across <code>node_modules</code>. Slow to read from disk &mdash; activation drags.</p>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Bundled</h3>
+        <p>One <code>dist/extension.js</code>. Smaller package, fewer file reads, noticeably faster activation.</p>
+      </div>
+      <div class="card amber" style="margin-top:.4em;">
+        <h3 class="a">Keep <code>vscode</code> external</h3>
+        <p>The host provides the <code>vscode</code> module at runtime &mdash; never bundle it. Mark it <code>--external:vscode</code>.</p>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p"><code>vscode:prepublish</code></h3>
+        <p><code>vsce</code> runs this script automatically before packaging, so the published bundle is always the minified build.</p>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">esbuild or webpack</h3>
+        <p>esbuild is fast and simple; webpack suits complex setups. Either works &mdash; the wins are the same.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 09 — .vscodeignore ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">08</span>
+    <h2>The <code>.vscodeignore</code> File</h2>
+  </div>
+  <p>Like <code>.gitignore</code>, but for the package: <code>.vscodeignore</code> tells <span class="a">vsce</span> what to leave out of the <code>.vsix</code>. Once you bundle, exclude source, tests, and dev dependencies.</p>
+  <div class="cols cols-2">
+    <div>
+      <pre><code class="language-ini"># .vscodeignore
+.vscode/**
+.vscode-test/**
+.vscode-test.mjs
+
+# source &amp; tests — only ship the bundle
+src/**
+out/**
+**/*.ts
+**/*.map
+
+# tooling &amp; config
+.gitignore
+.eslintrc*
+eslint.config.mjs
+tsconfig.json
+esbuild.js
+**/.github/**
+
+# when bundling, drop node_modules entirely
+node_modules/**</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Why it matters</h3>
+        <ul>
+          <li>Smaller download &amp; faster install for users</li>
+          <li>You ship build output, not raw TypeScript</li>
+          <li>No test fixtures or CI config in the package</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Bundled? Drop node_modules</h3>
+        <p>If esbuild inlines deps into <code>dist/extension.js</code>, you can ignore all of <code>node_modules</code> &mdash; the runtime deps are already in the bundle.</p>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Always keep</h3>
+        <ul>
+          <li><code>dist/**</code> (your bundle)</li>
+          <li><code>package.json</code>, <code>README.md</code></li>
+          <li><code>CHANGELOG.md</code>, <code>LICENSE</code>, icon</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Verify before you ship</h3>
+        <p><code>vsce ls</code> lists exactly what the package will contain. Run it to confirm nothing private leaks in.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 10 — PACKAGING WITH VSCE ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">09</span>
+    <h2>Packaging with <code>vsce</code></h2>
+  </div>
+  <p><span class="a">vsce</span> (now published as <code>@vscode/vsce</code>) is the official packaging &amp; publishing CLI. <code>vsce package</code> produces a single <code>.vsix</code> archive.</p>
+  <div class="cols cols-2">
+    <div>
+      <pre><code class="language-bash"># Install the CLI globally
+npm install -g @vscode/vsce
+
+# Build the package → my-ext-0.0.1.vsix
+vsce package
+
+# List what will be included (dry run)
+vsce ls
+
+# Install the .vsix locally to test it
+code --install-extension my-ext-0.0.1.vsix
+
+# …or in VS Code: Extensions view →
+#   "…" menu → "Install from VSIX…"</code></pre>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">The <code>.vsix</code></h3>
+        <p>A zip of your bundle + manifest + assets, named <code>&lt;name&gt;-&lt;version&gt;.vsix</code>. It is the unit you install or publish.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Required manifest fields</h3>
+        <ul>
+          <li><code>name</code>, <code>displayName</code>, <code>version</code></li>
+          <li><code>publisher</code> &mdash; your Marketplace publisher ID</li>
+          <li><code>engines.vscode</code> &mdash; min supported API</li>
+          <li><code>repository</code> &mdash; source URL</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Strongly recommended</h3>
+        <ul>
+          <li><code>icon</code> &mdash; 128&times;128 PNG</li>
+          <li><code>README.md</code> &mdash; the Marketplace page</li>
+          <li><code>LICENSE</code> &mdash; or vsce warns</li>
+          <li><code>categories</code>, <code>keywords</code> for discovery</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">vsce checks for you</h3>
+        <p>Packaging fails or warns on a missing <code>repository</code>, <code>LICENSE</code>, or a placeholder README &mdash; fix these before publishing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 11 — PREPARING TO PUBLISH ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">10</span>
+    <h2>Preparing to Publish</h2>
+  </div>
+  <p>Publishing to the Marketplace needs a <span class="a">publisher</span> identity and an <span class="g">Azure DevOps Personal Access Token (PAT)</span>. This is a one-time setup.</p>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">1 · Create a publisher</h3>
+        <p>In the Visual Studio Marketplace management portal (<span class="mono">marketplace.visualstudio.com/manage</span>), create a publisher. Its ID becomes the <code>publisher</code> field in <code>package.json</code>.</p>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">2 · Create an Azure DevOps PAT</h3>
+        <ul>
+          <li>Sign in at <span class="mono">dev.azure.com</span></li>
+          <li>User settings &rarr; Personal Access Tokens</li>
+          <li>Organisation: <span class="mono">All accessible organizations</span></li>
+          <li>Scope: <span class="b">Marketplace &rarr; Manage</span></li>
+          <li>Copy the token &mdash; shown only once</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">3 · Log in with vsce</h3>
+        <pre><code class="language-bash">vsce login &lt;publisher&gt;
+# paste the PAT when prompted</code></pre>
+      </div>
+    </div>
+    <div>
+      <pre><code class="language-bash"># Steps at a glance
+# a) publisher created in the portal
+# b) PAT scoped to Marketplace → Manage
+# c) authenticate the CLI
+vsce login my-publisher
+
+# CI uses the PAT non-interactively
+# via the VSCE_PAT environment variable
+export VSCE_PAT=xxxxxxxxxxxxxxxx
+vsce publish</code></pre>
+      <div class="card red" style="margin-top:.4em;">
+        <h3 class="r">Keep the PAT secret</h3>
+        <ul>
+          <li>Never commit it or print it in logs</li>
+          <li>Store it as an encrypted CI secret (<code>VSCE_PAT</code>)</li>
+          <li>Set a short expiry and rotate it regularly</li>
+          <li>Use the narrowest scope: Marketplace &rarr; Manage only</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Verify the publisher</h3>
+        <p>A verified publisher (domain check) earns a badge and builds user trust &mdash; optional but recommended.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 12 — PUBLISHING ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">11</span>
+    <h2>Publishing</h2>
+  </div>
+  <p>With a publisher and PAT in place, <code>vsce publish</code> packages and uploads in one step. Pass a semver keyword to bump the version, commit and tag automatically.</p>
+  <div class="cols cols-2">
+    <div>
+      <pre><code class="language-bash"># Publish the current version in package.json
+vsce publish
+
+# Bump version, then publish (semver):
+vsce publish patch   # 1.0.0 → 1.0.1
+vsce publish minor   # 1.0.1 → 1.1.0
+vsce publish major   # 1.1.0 → 2.0.0
+
+# Or publish an exact version
+vsce publish 1.2.3
+
+# Publish a pre-built .vsix
+vsce publish --packagePath my-ext-1.2.3.vsix
+
+# CI: authenticate via env, no prompt
+vsce publish -p $VSCE_PAT</code></pre>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Version bumps do the work</h3>
+        <p><code>vsce publish minor</code> updates <code>version</code> in <code>package.json</code>, makes a git commit, and creates a tag &mdash; all before uploading.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 360 200" width="360" height="200">
+        <text x="180" y="22" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="14" font-weight="700">Semantic Versioning</text>
+        <!-- major -->
+        <rect x="20" y="50" width="90" height="46" rx="5" fill="#181824" stroke="#f87171" stroke-width="1.4"/>
+        <text x="65" y="72" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="14" font-weight="500">major</text>
+        <text x="65" y="88" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="7">breaking</text>
+        <text x="118" y="80" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="18">.</text>
+        <!-- minor -->
+        <rect x="135" y="50" width="90" height="46" rx="5" fill="#181824" stroke="#4ecb8d" stroke-width="1.4"/>
+        <text x="180" y="72" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="14" font-weight="500">minor</text>
+        <text x="180" y="88" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="7">features</text>
+        <text x="233" y="80" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="18">.</text>
+        <!-- patch -->
+        <rect x="250" y="50" width="90" height="46" rx="5" fill="#181824" stroke="#60a5fa" stroke-width="1.4"/>
+        <text x="295" y="72" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="14" font-weight="500">patch</text>
+        <text x="295" y="88" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="7">fixes</text>
+        <!-- example -->
+        <text x="180" y="135" text-anchor="middle" fill="#e8e8f0" font-family="JetBrains Mono" font-size="22">2 . 4 . 1</text>
+        <line x1="65" y1="100" x2="155" y2="124" stroke="#f87171" stroke-width="0.8"/>
+        <line x1="180" y1="100" x2="180" y2="120" stroke="#4ecb8d" stroke-width="0.8"/>
+        <line x1="295" y1="100" x2="205" y2="124" stroke="#60a5fa" stroke-width="0.8"/>
+        <text x="180" y="172" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">vsce publish &lt;major|minor|patch&gt;</text>
+      </svg>
+      <div class="card amber" style="margin-top:.4em;">
+        <h3 class="a">After publishing</h3>
+        <p>The new version appears on the Marketplace within minutes and auto-updates for installed users. Push your tags with <code>git push --follow-tags</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 13 — OPEN VSX REGISTRY ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">12</span>
+    <h2>The Open VSX Registry</h2>
+  </div>
+  <p>The Marketplace only serves Microsoft's VS Code build. <span class="a">Open VSX</span> is the open registry used by VSCodium, Gitpod, Theia, Eclipse and others &mdash; dual-publish to reach those users too.</p>
+  <div class="cols cols-2">
+    <div>
+      <pre><code class="language-bash"># Install the Open VSX CLI
+npm install -g ovsx
+
+# Publish an existing .vsix to Open VSX
+npx ovsx publish my-ext-1.2.3.vsix -p &lt;token&gt;
+
+# …or package + publish in one go
+npx ovsx publish -p &lt;token&gt;
+
+# In CI, read the token from a secret
+npx ovsx publish *.vsix -p $OVSX_PAT</code></pre>
+      <div class="card amber" style="margin-top:.4em;">
+        <h3 class="a">Get a token</h3>
+        <ul>
+          <li>Sign in at <span class="mono">open-vsx.org</span> (GitHub)</li>
+          <li>Create an eclipse.org account &amp; sign the Publisher Agreement</li>
+          <li>Generate an access token from your profile</li>
+          <li>Create your namespace: <code>ovsx create-namespace &lt;name&gt;</code></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3 class="g">Why dual-publish</h3>
+        <ul>
+          <li>Reach VSCodium, Gitpod, Theia, Eclipse users</li>
+          <li>Same <code>.vsix</code> &mdash; no separate build</li>
+          <li>Open-source-friendly distribution</li>
+          <li>Many cloud IDEs default to Open VSX</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Same artefact, two homes</h3>
+        <p>Build the <code>.vsix</code> once with <code>vsce package</code>, then publish that exact file to both registries. No divergence between them.</p>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Keep tokens separate</h3>
+        <p><code>VSCE_PAT</code> for the Marketplace, <code>OVSX_PAT</code> for Open VSX. Store both as encrypted CI secrets.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 14 — CI/CD WITH GITHUB ACTIONS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">13</span>
+    <h2>CI/CD with GitHub Actions</h2>
+  </div>
+  <p>Wire it all together: on a version tag, the workflow installs, lints, tests (headless via <code>xvfb-run</code>), packages, and publishes to <span class="a">both</span> registries from repo secrets.</p>
+  <div class="cols cols-2">
+    <div>
+      <pre><code class="language-yaml"># .github/workflows/release.yml
+name: Release
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+
+      # lint + type-check + tests
+      - run: npm run lint
+      - run: xvfb-run -a npm test</code></pre>
+    </div>
+    <div>
+      <pre><code class="language-yaml">      # build the .vsix once
+      - run: npm install -g @vscode/vsce ovsx
+      - run: vsce package -o extension.vsix
+
+      # publish to the VS Marketplace
+      - run: vsce publish -p $VSCE_PAT \
+               --packagePath extension.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      # publish the same file to Open VSX
+      - run: npx ovsx publish extension.vsix \
+               -p $OVSX_PAT
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}</code></pre>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">How it runs</h3>
+        <ul>
+          <li><code>git tag v1.2.3 &amp;&amp; git push --tags</code> triggers it</li>
+          <li><code>xvfb-run</code> gives the Linux runner a display</li>
+          <li>Secrets <code>VSCE_PAT</code> / <code>OVSX_PAT</code> stay encrypted</li>
+          <li>One push &rarr; tested, packaged, dual-published</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 15 — SUMMARY & SERIES RECAP ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">14</span>
+    <h2>Summary, Best Practices &amp; Series Recap</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Release Best Practices</h3>
+        <ul>
+          <li>Bundle &mdash; small <code>.vsix</code>, fast install</li>
+          <li>Don't block activation; keep <code>activate()</code> lean</li>
+          <li>Narrow activation events &mdash; activate only when needed</li>
+          <li>Polish the README, icon, categories &amp; keywords</li>
+          <li>Keep a <code>CHANGELOG.md</code>; follow semver discipline</li>
+          <li>Test in the host + unit-test pure logic</li>
+          <li>Dual-publish; automate the release on tag</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">You can now…</h3>
+        <div class="ss-row">
+          <span class="ss-node active">Build</span>
+          <span class="ss-arrow">&rarr;</span>
+          <span class="ss-node active">Test</span>
+          <span class="ss-arrow">&rarr;</span>
+          <span class="ss-node done">Ship</span>
+          <span class="ss-label">end-to-end</span>
+        </div>
+        <p style="margin-top:.3em;">You can build, test and ship a VS Code extension end-to-end &mdash; from <code>activate()</code> to the Marketplace and Open VSX.</p>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Further Reading</h3>
+        <ul>
+          <li><span class="b">Publishing Extensions</span> &mdash; code.visualstudio.com/api/working-with-extensions/publishing-extension</li>
+          <li><span class="b">Testing Extensions</span> &mdash; code.visualstudio.com/api/working-with-extensions/testing-extension</li>
+          <li><span class="b">Open VSX</span> &mdash; open-vsx.org &middot; github.com/eclipse/openvsx</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">The 5-Part Series</h3>
+      </div>
+      <div class="card amber" style="margin-top:.3em;">
+        <h3 class="a">Part 1 &mdash; Getting Started</h3>
+        <p>Scaffolding with Yeoman, the manifest, <code>activate()</code>, the dev loop &amp; first command.</p>
+      </div>
+      <div class="card green" style="margin-top:.3em;">
+        <h3 class="g">Part 2 &mdash; Commands &amp; Contribution Points</h3>
+        <p>Commands, menus, keybindings, configuration &amp; activation events.</p>
+      </div>
+      <div class="card blue" style="margin-top:.3em;">
+        <h3 class="b">Part 3 &mdash; The Extension API</h3>
+        <p>Editors, the workspace, windows, status bar, events &amp; disposables.</p>
+      </div>
+      <div class="card purple" style="margin-top:.3em;">
+        <h3 class="p">Part 4 &mdash; Webviews &amp; Language Features</h3>
+        <p>Webview UIs, completions, hovers, diagnostics &amp; language providers.</p>
+      </div>
+      <div class="card red" style="margin-top:.3em;">
+        <h3 class="r">Part 5 &mdash; Testing, Packaging &amp; Publishing</h3>
+        <p>Tests, bundling, the <code>.vsix</code>, vsce, Open VSX &amp; a CI/CD release pipeline.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  transition: 'fade',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  center: false,
+  width: 1100,
+  height: 900,
+  margin: 0.01,
+  plugins: [RevealHighlight],
+  highlight: { theme: 'monokai' }
+});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>

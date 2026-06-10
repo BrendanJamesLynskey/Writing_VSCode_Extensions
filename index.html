@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing VS Code Extensions &mdash; A Step-by-Step Tutorial Series</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a; --bg-card: #0d1117; --bg-code: #161b22;
+            --text-primary: #e6edf3; --text-secondary: #8b949e;
+            --accent: #fbbf24; --accent-dim: #fbbf2444; --accent-glow: #fbbf2433;
+            --accent-2: #f472b6; --accent-3: #a78bfa; --accent-4: #34d399;
+            --accent-5: #60a5fa;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 960px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg-primary); color: var(--text-primary);
+               font-family: var(--font-body); font-size: 17px; line-height: 1.7;
+               overflow-x: hidden; }
+        .hero { min-height: 56vh; display: flex; flex-direction: column;
+                justify-content: center; align-items: center;
+                padding: 4rem 1.5rem 3rem; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%;
+                        transform: translateX(-50%); width: 700px; height: 600px;
+                        background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+                        pointer-events: none; z-index: 0; }
+        .hero > * { position: relative; z-index: 1; }
+        .series-label { font-family: var(--font-mono); font-size: 0.85rem;
+                        color: var(--accent); letter-spacing: 0.15em;
+                        text-transform: uppercase; margin-bottom: 1rem; }
+        .hero h1 { font-family: var(--font-display);
+                   font-size: clamp(2rem, 5vw, 3rem); font-weight: 700;
+                   color: var(--text-primary); line-height: 1.2; margin-bottom: 1rem; }
+        .hero h1 .accent { color: var(--accent); }
+        .hero .subtitle { font-size: 1.1rem; color: var(--text-secondary);
+                          max-width: 720px; margin-bottom: 1.5rem; }
+        .flow { font-family: var(--font-mono); font-size: 0.85rem;
+                color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .flow .step { color: var(--accent); }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem;
+                justify-content: center; margin-bottom: 1rem; }
+        .tag { font-family: var(--font-mono); font-size: 0.75rem;
+               padding: 0.25rem 0.75rem; border-radius: 999px;
+               border: 1px solid var(--accent); color: var(--accent);
+               background: var(--accent-dim); white-space: nowrap; }
+        .tag.r { border-color: var(--accent-2); color: var(--accent-2); background: rgba(244,114,182,0.10); }
+        .tag.p { border-color: var(--accent-3); color: var(--accent-3); background: rgba(167,139,250,0.10); }
+        .tag.g { border-color: var(--accent-4); color: var(--accent-4); background: rgba(52,211,153,0.10); }
+        .tag.b { border-color: var(--accent-5); color: var(--accent-5); background: rgba(96,165,250,0.10); }
+        .container { max-width: var(--max-width); margin: 0 auto; padding: 2rem 1.5rem; }
+        h2 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700;
+             color: var(--accent); margin: 1rem 0 1.25rem; }
+        h3 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600;
+             color: var(--text-primary); margin: 1.5rem 0 0.6rem;
+             padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); }
+        p.lead { color: var(--text-secondary); margin-bottom: 1rem; }
+        .deck-list { display: flex; flex-direction: column; gap: 0.6rem;
+                     list-style: none; padding: 0; }
+        .deck-card { display: flex; gap: 1rem; padding: 1rem 1.25rem;
+                     background: var(--bg-card); border: 1px solid var(--border);
+                     border-left: 3px solid var(--accent); border-radius: 6px;
+                     transition: border-color 0.15s; }
+        .deck-card:hover { border-color: var(--accent); }
+        .deck-card.r { border-left-color: var(--accent-2); }
+        .deck-card.r:hover { border-color: var(--accent-2); }
+        .deck-card.p { border-left-color: var(--accent-3); }
+        .deck-card.p:hover { border-color: var(--accent-3); }
+        .deck-card.g { border-left-color: var(--accent-4); }
+        .deck-card.g:hover { border-color: var(--accent-4); }
+        .deck-card.b { border-left-color: var(--accent-5); }
+        .deck-card.b:hover { border-color: var(--accent-5); }
+        .deck-card .num { font-family: var(--font-mono); font-size: 0.85rem;
+                          color: var(--accent); min-width: 2.2rem;
+                          padding-top: 0.15rem; font-weight: 500; }
+        .deck-card.r .num { color: var(--accent-2); }
+        .deck-card.p .num { color: var(--accent-3); }
+        .deck-card.g .num { color: var(--accent-4); }
+        .deck-card.b .num { color: var(--accent-5); }
+        .deck-card .body { flex: 1; min-width: 0; }
+        .deck-card .deck-title { font-family: var(--font-display); font-size: 1.05rem;
+                                 font-weight: 600; color: var(--text-primary);
+                                 margin-bottom: 0.2rem; }
+        .deck-card a.deck-title { text-decoration: none; display: inline-block; }
+        .deck-card a.deck-title:hover { color: var(--accent); }
+        .deck-card.r a.deck-title:hover { color: var(--accent-2); }
+        .deck-card.p a.deck-title:hover { color: var(--accent-3); }
+        .deck-card.g a.deck-title:hover { color: var(--accent-4); }
+        .deck-card.b a.deck-title:hover { color: var(--accent-5); }
+        .deck-card .desc { font-size: 0.92rem; color: var(--text-secondary); }
+        .deck-card .meta { font-family: var(--font-mono); font-size: 0.7rem;
+                           color: var(--text-secondary); margin-top: 0.45rem;
+                           display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+        .deck-card .meta a { color: var(--text-secondary); text-decoration: none;
+                             border-bottom: 1px dotted var(--border); }
+        .deck-card .meta a:hover { color: var(--accent); }
+        .badge { display: inline-block; font-family: var(--font-mono);
+                 font-size: 0.65rem; padding: 0.1rem 0.5rem; border-radius: 999px;
+                 border: 1px solid var(--border); color: var(--text-secondary); }
+        .badge.live { border-color: var(--accent); color: var(--accent);
+                      background: var(--accent-dim); }
+        .callout { background: var(--bg-card); border-left: 3px solid var(--accent);
+                   border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+        .callout p { margin-bottom: 0; color: var(--text-secondary); }
+        .callout p strong { color: var(--text-primary); }
+        .callout p + p { margin-top: 0.6rem; }
+        .arc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                    gap: 0.75rem; margin: 1rem 0 1.5rem; }
+        .arc-cell { background: var(--bg-card); border: 1px solid var(--border);
+                    border-left: 3px solid var(--accent); border-radius: 6px;
+                    padding: 0.85rem 1rem; }
+        .arc-cell.r { border-left-color: var(--accent-2); }
+        .arc-cell.p { border-left-color: var(--accent-3); }
+        .arc-cell.g { border-left-color: var(--accent-4); }
+        .arc-cell.b { border-left-color: var(--accent-5); }
+        .arc-cell h4 { font-family: var(--font-display); font-size: 0.95rem;
+                       color: var(--accent); margin-bottom: 0.3rem; }
+        .arc-cell.r h4 { color: var(--accent-2); }
+        .arc-cell.p h4 { color: var(--accent-3); }
+        .arc-cell.g h4 { color: var(--accent-4); }
+        .arc-cell.b h4 { color: var(--accent-5); }
+        .arc-cell p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                    gap: 0.6rem; margin: 1rem 0; }
+        .control { background: var(--bg-card); border: 1px solid var(--border);
+                   border-radius: 6px; padding: 0.7rem 0.9rem; font-size: 0.85rem;
+                   color: var(--text-secondary); }
+        .control kbd { font-family: var(--font-mono); font-size: 0.75rem;
+                       background: var(--bg-code); border: 1px solid var(--border);
+                       border-radius: 4px; padding: 0.05rem 0.4rem; color: var(--accent); }
+        .footer { text-align: center; padding: 3rem 1.5rem;
+                  color: var(--text-secondary); font-size: 0.85rem;
+                  border-top: 1px solid var(--border); max-width: var(--max-width);
+                  margin: 3rem auto 0; }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<header class="hero">
+    <div class="series-label">Tutorial Series &middot; 5 Parts</div>
+    <h1>Writing <span class="accent">VS Code Extensions</span></h1>
+    <p class="subtitle">A step-by-step, five-part interactive tutorial that takes you from an empty folder to a tested extension published on the Marketplace &mdash; scaffolding, contribution points, the Extension API, webviews &amp; language features, and the full test-and-publish pipeline.</p>
+    <div class="flow">
+        <span class="step">Scaffold</span> &rarr; <span class="step">Contribute</span> &rarr; <span class="step">Call the API</span> &rarr; <span class="step">Build UI</span> &rarr; <span class="step">Ship</span>
+    </div>
+    <div class="tags">
+        <span class="tag">yo code</span>
+        <span class="tag">Extension Manifest</span>
+        <span class="tag g">Contribution Points</span>
+        <span class="tag g">Commands</span>
+        <span class="tag p">window &amp; workspace</span>
+        <span class="tag p">Disposables</span>
+        <span class="tag b">Webviews</span>
+        <span class="tag b">Tree Views</span>
+        <span class="tag r">IntelliSense</span>
+        <span class="tag r">LSP</span>
+        <span class="tag">vsce</span>
+        <span class="tag">Marketplace</span>
+    </div>
+</header>
+<main class="container">
+
+    <div class="callout">
+        <p><strong>Who this is for.</strong> Developers comfortable with TypeScript/JavaScript and Node.js who want to extend Visual Studio Code &mdash; whether to add a single command, surface a custom view, light up a new language, or publish a polished extension to the world.</p>
+        <p><strong>How to use it.</strong> Each part is a self-contained interactive deck (Reveal.js) with code you can copy and run. Work through them in order; every part ends with a hands-on exercise and points to the next.</p>
+    </div>
+
+    <h2>The learning arc</h2>
+    <div class="arc-grid">
+        <div class="arc-cell">
+            <h4>01 &nbsp;Foundations</h4>
+            <p>The Extension Host model, scaffolding with <span style="font-family:var(--font-mono)">yo code</span>, the manifest, <span style="font-family:var(--font-mono)">activate()</span>, and your first command running under F5.</p>
+        </div>
+        <div class="arc-cell g">
+            <h4>02 &nbsp;Declaring Capabilities</h4>
+            <p>The <span style="font-family:var(--font-mono)">contributes</span> map &mdash; commands, keybindings, menus, settings and <span style="font-family:var(--font-mono)">when</span> clauses that wire your extension into the UI.</p>
+        </div>
+        <div class="arc-cell p">
+            <h4>03 &nbsp;The API</h4>
+            <p>The <span style="font-family:var(--font-mono)">vscode</span> namespace in depth &mdash; messages, quick picks, the status bar, the workspace, documents, edits and the file system.</p>
+        </div>
+        <div class="arc-cell b">
+            <h4>04 &nbsp;Rich Experiences</h4>
+            <p>Tree views, webviews and their message channel, IntelliSense, diagnostics, and the Language Server Protocol.</p>
+        </div>
+        <div class="arc-cell r">
+            <h4>05 &nbsp;Shipping It</h4>
+            <p>Integration tests, bundling, packaging a <span style="font-family:var(--font-mono)">.vsix</span>, publishing to the Marketplace and Open VSX, and a CI/CD pipeline.</p>
+        </div>
+    </div>
+
+    <h2>Presentations in this series</h2>
+    <ol class="deck-list">
+        <li class="deck-card"><div class="num">01</div><div class="body"><a class="deck-title" href="01_Getting_Started/">Getting Started &rarr;</a><div class="desc">What an extension is and the Extension Host architecture, prerequisites, scaffolding with <span style="font-family:var(--font-mono)">yo code</span>, the project anatomy, the <span style="font-family:var(--font-mono)">package.json</span> manifest, <span style="font-family:var(--font-mono)">activate()</span>/<span style="font-family:var(--font-mono)">deactivate()</span>, your first command, running under F5, activation events, and debugging.</div><div class="meta"><span class="badge live">live</span><span>Part 1</span><a href="01_Getting_Started/presentation.md">markdown</a></div></div></li>
+
+        <li class="deck-card g"><div class="num">02</div><div class="body"><a class="deck-title" href="02_Commands_and_Contribution_Points/">Commands &amp; Contribution Points &rarr;</a><div class="desc">The <span style="font-family:var(--font-mono)">contributes</span> map &mdash; declaring commands, activation events, keybindings, menus and groups, <span style="font-family:var(--font-mono)">when</span>-clause contexts, configuration/settings, view containers, and the full catalogue of contribution points.</div><div class="meta"><span class="badge live">live</span><span>Part 2</span><a href="02_Commands_and_Contribution_Points/presentation.md">markdown</a></div></div></li>
+
+        <li class="deck-card p"><div class="num">03</div><div class="body"><a class="deck-title" href="03_The_Extension_API/">The Extension API &rarr;</a><div class="desc">The <span style="font-family:var(--font-mono)">vscode</span> namespace map, disposables and <span style="font-family:var(--font-mono)">context.subscriptions</span>, messages, quick picks, input boxes, the status bar and progress, the workspace, <span style="font-family:var(--font-mono)">TextDocument</span>/<span style="font-family:var(--font-mono)">TextEditor</span>, edits, the file system and events.</div><div class="meta"><span class="badge live">live</span><span>Part 3</span><a href="03_The_Extension_API/presentation.md">markdown</a></div></div></li>
+
+        <li class="deck-card b"><div class="num">04</div><div class="body"><a class="deck-title" href="04_Webviews_and_Language_Features/">Webviews &amp; Language Features &rarr;</a><div class="desc">Tree views and <span style="font-family:var(--font-mono)">TreeDataProvider</span>, the Webview API and its bidirectional message channel, webview security (CSP &amp; nonces), webview views, completion/hover/diagnostics providers, and the Language Server Protocol.</div><div class="meta"><span class="badge live">live</span><span>Part 4</span><a href="04_Webviews_and_Language_Features/presentation.md">markdown</a></div></div></li>
+
+        <li class="deck-card r"><div class="num">05</div><div class="body"><a class="deck-title" href="05_Testing_Packaging_and_Publishing/">Testing, Packaging &amp; Publishing &rarr;</a><div class="desc">Integration tests with <span style="font-family:var(--font-mono)">@vscode/test-cli</span>, linting and bundling, the <span style="font-family:var(--font-mono)">.vscodeignore</span>, packaging a <span style="font-family:var(--font-mono)">.vsix</span> with <span style="font-family:var(--font-mono)">vsce</span>, publishing to the Marketplace and Open VSX, semantic versioning, and a GitHub Actions CI/CD pipeline.</div><div class="meta"><span class="badge live">live</span><span>Part 5</span><a href="05_Testing_Packaging_and_Publishing/presentation.md">markdown</a></div></div></li>
+    </ol>
+
+    <h2>Navigating a deck</h2>
+    <div class="controls">
+        <div class="control">Next / Previous &mdash; <kbd>&rarr;</kbd> <kbd>&larr;</kbd> or swipe</div>
+        <div class="control">Slide overview &mdash; <kbd>Esc</kbd></div>
+        <div class="control">Fullscreen &mdash; <kbd>F</kbd></div>
+        <div class="control">Export to PDF &mdash; append <kbd>?print-pdf</kbd> then print</div>
+    </div>
+
+    <h2>How these are built</h2>
+    <p class="lead">Every deck is a single self-contained <span style="font-family:var(--font-mono)">index.html</span> &mdash; no build step, no npm install, no dependencies to download. Slides are authored in HTML and rendered with <a href="https://revealjs.com" style="color:var(--accent);text-decoration:none">Reveal.js&nbsp;4.6</a>; code is highlighted with <a href="https://highlightjs.org" style="color:var(--accent);text-decoration:none">highlight.js</a>; diagrams are hand-drawn inline SVG. Typeset in Playfair Display, DM Sans and JetBrains Mono. Each deck also ships a plain-Markdown <span style="font-family:var(--font-mono)">presentation.md</span> version for reading on GitHub.</p>
+
+    <h2>References</h2>
+    <p class="lead">
+        <a href="https://code.visualstudio.com/api" style="color:var(--accent);text-decoration:none">VS Code Extension API</a> &middot;
+        <a href="https://code.visualstudio.com/api/get-started/your-first-extension" style="color:var(--accent);text-decoration:none">Your First Extension</a> &middot;
+        <a href="https://code.visualstudio.com/api/references/contribution-points" style="color:var(--accent);text-decoration:none">Contribution Points</a> &middot;
+        <a href="https://code.visualstudio.com/api/references/vscode-api" style="color:var(--accent);text-decoration:none">vscode API reference</a> &middot;
+        <a href="https://microsoft.github.io/language-server-protocol/" style="color:var(--accent);text-decoration:none">Language Server Protocol</a> &middot;
+        <a href="https://code.visualstudio.com/api/working-with-extensions/publishing-extension" style="color:var(--accent);text-decoration:none">Publishing Extensions</a>
+    </p>
+
+</main>
+<footer class="footer">
+    <p>Part of <a href="https://github.com/BrendanJamesLynskey/Software">Brendan Lynskey &middot; Software</a> &mdash; presentations, playgrounds and reference projects.</p>
+    <p style="margin-top:0.5rem">Source: <a href="https://github.com/BrendanJamesLynskey/Writing_VSCode_Extensions">github.com/BrendanJamesLynskey/Writing_VSCode_Extensions</a> &middot; Educational use.</p>
+</footer>
+</body>
+</html>

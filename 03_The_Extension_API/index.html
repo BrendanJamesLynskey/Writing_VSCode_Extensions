@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing VS Code Extensions — Part 3: The Extension API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root {
+    --amber:  #f5a623;
+    --green:  #4ecb8d;
+    --purple: #a78bfa;
+    --blue:   #60a5fa;
+    --red:    #f87171;
+    --bg:     #0a0a0f;
+    --bg2:    #10101a;
+    --bg3:    #181824;
+    --border: #2a2a3a;
+    --text:   #e8e8f0;
+    --muted:  #8888a8;
+  }
+
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { background: transparent; }
+
+  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal h1 { font-size: 1.6em; color: var(--amber); line-height: 1.1; }
+  .reveal h2 { font-size: 1.1em; color: var(--amber); margin-bottom: .2em; }
+  .reveal h3 { font-size: .78em; color: var(--green); margin-bottom: .15em; }
+  .reveal p  { font-size: .56em; line-height: 1.45; color: var(--text); }
+  .reveal li { font-size: .54em; line-height: 1.45; margin-bottom: .1em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .72em; }
+  .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
+                 border-radius: 6px; padding: .3em .5em; margin: .25em 0; }
+  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #cdd6f4; }
+
+  /* ── slide chrome ── */
+  .slide-hdr {
+    display: flex; align-items: center; gap: .4em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .2em; margin-bottom: .3em;
+  }
+  .slide-hdr .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .42em; font-weight: 500;
+    color: var(--bg); background: var(--amber);
+    padding: .1em .4em; border-radius: 3px;
+    letter-spacing: .04em;
+  }
+  .slide-hdr h2 { margin: 0; font-size: .95em; }
+
+  /* ── two-column ── */
+  .cols   { display: grid; gap: .5em; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-6040 { grid-template-columns: 6fr 4fr; }
+  .cols-4060 { grid-template-columns: 4fr 6fr; }
+
+  /* ── cards ── */
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 6px; padding: .35em .6em;
+  }
+  .card.amber { border-left: 3px solid var(--amber); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.purple{ border-left: 3px solid var(--purple); }
+  .card.blue  { border-left: 3px solid var(--blue); }
+  .card.red   { border-left: 3px solid var(--red); }
+  .card h3 { font-size: .64em; margin: 0 0 .12em; }
+  .card p  { font-size: .52em; margin: 0; color: #b8b8d0; }
+  .card ul { margin: 0; padding-left: 1em; }
+  .card li { font-size: .52em; color: #b8b8d0; margin-bottom: .02em; }
+
+  /* ── table ── */
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .5em; }
+  .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
+                     padding: .2em .4em; border: 1px solid var(--border); text-align: left; }
+  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #ccc; }
+  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+
+  /* ── accent spans ── */
+  .a  { color: var(--amber); font-weight: 600; }
+  .g  { color: var(--green); font-weight: 600; }
+  .p  { color: var(--purple); font-weight: 600; }
+  .b  { color: var(--blue); font-weight: 600; }
+  .r  { color: var(--red); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── SVG graph diagrams ── */
+  svg.diagram { display: block; margin: 0 auto; overflow: visible; }
+
+  /* ── pill badges ── */
+  .pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: .44em; padding: .08em .4em; border-radius: 99px;
+    border: 1px solid; margin: 0 .08em;
+  }
+  .pill.amber { color: var(--amber); border-color: var(--amber); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.purple{ color: var(--purple); border-color: var(--purple); }
+  .pill.blue  { color: var(--blue); border-color: var(--blue); }
+
+  /* ── footer — hidden; was overlapping scrollable content ── */
+  .reveal .slide-footer { display: none; }
+  /* title slide special */
+  .title-slide h1 { font-size: 1.8em; }
+  .title-slide .subtitle {
+    font-size: .7em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-weight: 300; letter-spacing: .04em; margin: .3em 0 .6em;
+  }
+  .title-slide .meta { font-size: .48em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── super-step animator ── */
+  .ss-row {
+    display: flex; gap: .25em; align-items: center;
+    margin: .1em 0; font-size: .55em; font-family: 'JetBrains Mono', monospace;
+  }
+  .ss-node {
+    padding: .2em .55em; border-radius: 5px; font-size: .9em;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  }
+  .ss-node.active { background: #1a2a1a; border-color: var(--green); color: var(--green); }
+  .ss-node.done   { background: #1a1a2a; border-color: var(--purple); color: var(--purple); }
+  .ss-arrow { color: var(--amber); }
+  .ss-label { font-size: .8em; color: var(--muted); margin-left: .3em; }
+
+  /* reduce default margins */
+  .reveal ul, .reveal ol { margin: .15em 0 .15em 1em; }
+.reveal .slides > section { display: flex !important; flex-direction: column !important; overflow-y: auto !important; align-items: stretch !important; justify-content: flex-start !important; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+
+<!-- ═══════════════════════════════ SLIDE 01 — TITLE ═══════════════════════════════ -->
+<section class="title-slide" data-background-color="#0a0a0f">
+  <div style="text-align:left; max-width:820px; margin:0 auto; padding: 1em 0;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">
+      TUTORIAL SERIES &middot; PART 3 OF 5
+    </div>
+    <h1>Writing VS Code<br>Extensions</h1>
+    <div class="subtitle">Part 3 &mdash; The Extension API in Depth</div>
+    <div style="width:60px; height:3px; background:var(--amber); margin-bottom:1.4em;"></div>
+    <div style="display:flex; gap:1.2em; flex-wrap:wrap; margin-bottom:1em;">
+      <span class="pill amber">window</span>
+      <span class="pill green">workspace</span>
+      <span class="pill purple">commands</span>
+      <span class="pill blue">languages</span>
+      <span class="pill amber">Disposables</span>
+    </div>
+    <div class="ss-row" style="margin-top:0.6em;">
+      <span class="ss-node active">window</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node active">workspace</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node done">editor</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node done">fs</span>
+    </div>
+    <p style="max-width:620px; color:#a0a0c0; font-size:.56em; line-height:1.5; margin-top:1em;">
+      A guided tour of the <span class="mono">vscode</span> namespace &mdash; the objects, events and disposables you use to read, edit and react to the editor
+    </p>
+    <div class="meta" style="margin-top:1.4em;">
+      Namespaces &nbsp;&middot;&nbsp; Disposables &nbsp;&middot;&nbsp; Editors &nbsp;&middot;&nbsp; Events
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 02 — AGENDA ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">01</span>
+    <h2>Agenda</h2>
+  </div>
+  <p>This part assumes you have an activated extension from Parts 1&ndash;2. We now go deep on the <span class="a">runtime API surface</span> &mdash; the <span class="mono">vscode</span> module your code imports.</p>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Foundations</h3>
+        <ul>
+          <li>The <code>vscode</code> namespace map</li>
+          <li>Disposables &amp; <code>context.subscriptions</code></li>
+          <li>Why everything you register must be disposed</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:0.5em;">
+        <h3 class="g">The <code>window</code> namespace</h3>
+        <ul>
+          <li>Messages, Quick Pick, Input Box</li>
+          <li>Status Bar items with codicons</li>
+          <li>Progress for long-running tasks</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">The <code>workspace</code> &amp; editors</h3>
+        <ul>
+          <li>Folders, <code>findFiles</code>, configuration</li>
+          <li><code>TextDocument</code> &amp; <code>TextEditor</code></li>
+          <li>Editing with <code>edit()</code> &amp; <code>WorkspaceEdit</code></li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:0.5em;">
+        <h3 class="b">Files, state &amp; events</h3>
+        <ul>
+          <li><code>workspace.fs</code> &amp; file-system watchers</li>
+          <li>Document save/change events</li>
+          <li>State: global, workspace, secrets</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 03 — THE vscode NAMESPACE MAP ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">02</span>
+    <h2>The <code>vscode</code> Namespace Map</h2>
+  </div>
+  <p>Your extension imports a single module &mdash; <code>import * as vscode from 'vscode';</code> &mdash; whose top-level namespaces group every API by concern.</p>
+  <svg class="diagram" viewBox="0 0 980 360" width="980" height="360">
+    <!-- central module -->
+    <rect x="410" y="12" width="160" height="40" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.6"/>
+    <text x="490" y="37" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="13" font-weight="500">vscode</text>
+    <!-- spokes -->
+    <defs>
+      <marker id="aAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#2a2a3a"/></marker>
+    </defs>
+    <line x1="490" y1="52" x2="120" y2="92" stroke="#2a2a3a" stroke-width="1"/>
+    <line x1="490" y1="52" x2="370" y2="92" stroke="#2a2a3a" stroke-width="1"/>
+    <line x1="490" y1="52" x2="610" y2="92" stroke="#2a2a3a" stroke-width="1"/>
+    <line x1="490" y1="52" x2="860" y2="92" stroke="#2a2a3a" stroke-width="1"/>
+    <line x1="490" y1="52" x2="120" y2="232" stroke="#2a2a3a" stroke-width="1"/>
+    <line x1="490" y1="52" x2="370" y2="232" stroke="#2a2a3a" stroke-width="1"/>
+    <line x1="490" y1="52" x2="610" y2="232" stroke="#2a2a3a" stroke-width="1"/>
+    <line x1="490" y1="52" x2="860" y2="232" stroke="#2a2a3a" stroke-width="1"/>
+    <!-- row 1 -->
+    <rect x="20" y="92" width="200" height="58" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.4"/>
+    <text x="120" y="114" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">window</text>
+    <text x="120" y="134" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">editors, UI, messages, status bar</text>
+    <rect x="270" y="92" width="200" height="58" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.4"/>
+    <text x="370" y="114" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">workspace</text>
+    <text x="370" y="134" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">folders, files, config, fs, events</text>
+    <rect x="510" y="92" width="200" height="58" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.4"/>
+    <text x="610" y="114" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">commands</text>
+    <text x="610" y="134" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">register &amp; execute commands</text>
+    <rect x="760" y="92" width="200" height="58" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.4"/>
+    <text x="860" y="114" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="12">languages</text>
+    <text x="860" y="134" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">completion, diagnostics, hovers</text>
+    <!-- row 2 -->
+    <rect x="20" y="232" width="200" height="58" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.4"/>
+    <text x="120" y="254" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="12">env</text>
+    <text x="120" y="274" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">clipboard, openExternal, UI kind</text>
+    <rect x="270" y="232" width="200" height="58" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.4"/>
+    <text x="370" y="254" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="12">extensions</text>
+    <text x="370" y="274" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">inspect &amp; call other extensions</text>
+    <rect x="510" y="232" width="200" height="58" rx="6" fill="#181824" stroke="#f87171" stroke-width="1.4"/>
+    <text x="610" y="254" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="12">debug</text>
+    <text x="610" y="274" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">debug sessions &amp; breakpoints</text>
+    <rect x="760" y="232" width="200" height="58" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.4"/>
+    <text x="860" y="254" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="12">tasks</text>
+    <text x="860" y="274" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">register &amp; run build/run tasks</text>
+    <!-- footnote -->
+    <text x="490" y="328" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">Also: commands.executeCommand(...) is the universal bridge between every namespace</text>
+  </svg>
+  <p style="text-align:center; margin-top:.2em;">This deck focuses on <span class="a">window</span>, <span class="g">workspace</span> and the editor/document/file types they expose &mdash; the spine of almost every extension.</p>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 04 — DISPOSABLES ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">03</span>
+    <h2>Disposables &amp; <code>context.subscriptions</code></h2>
+  </div>
+  <p>Almost everything you <em>register</em> returns a <span class="a"><code>vscode.Disposable</code></span>. Push each one onto <code>context.subscriptions</code> so VS Code disposes it automatically on <code>deactivate</code>.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-typescript">import * as vscode from 'vscode';
+
+export function activate(context: vscode.ExtensionContext) {
+  // registerCommand returns a Disposable
+  const cmd = vscode.commands.registerCommand(
+    'myExt.hello', () => vscode.window.showInformationMessage('Hi!')
+  );
+
+  // Event subscriptions are Disposables too
+  const sub = vscode.workspace.onDidSaveTextDocument(doc =>
+    console.log('saved', doc.fileName)
+  );
+
+  // Hand ownership to VS Code — cleaned up on deactivate
+  context.subscriptions.push(cmd, sub);
+
+  // Manual disposal is also possible:
+  // const d = vscode.Disposable.from(cmd, sub); d.dispose();
+}
+
+export function deactivate() {}</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">The Pattern</h3>
+        <ul>
+          <li>Register &rarr; get a <code>Disposable</code></li>
+          <li><code>.push()</code> it to <code>subscriptions</code></li>
+          <li>VS Code calls <code>.dispose()</code> for you</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.4em;">
+        <h3 class="r">If You Don't</h3>
+        <ul>
+          <li>Listeners survive deactivation &rarr; <span class="r">leaks</span></li>
+          <li>Commands double-register on reload &rarr; errors</li>
+          <li>Status bar / watchers linger in memory</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Rule of Thumb</h3>
+        <p>If a call returns a <code>Disposable</code>, it belongs in <code>context.subscriptions</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 05 — window: MESSAGES ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">04</span>
+    <h2><code>window</code> &mdash; User Messages</h2>
+  </div>
+  <p>Three notification levels, each returning a <span class="a">promise</span>. Pass string arguments to add buttons; the promise resolves to the clicked label (or <code>undefined</code>).</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-typescript">// Plain notifications
+vscode.window.showInformationMessage('Build complete.');
+vscode.window.showWarningMessage('Unsaved changes.');
+vscode.window.showErrorMessage('Build failed.');
+
+// Buttons → resolves to the chosen string
+const choice = await vscode.window.showInformationMessage(
+  'Delete this file?',
+  'Delete', 'Cancel'
+);
+if (choice === 'Delete') { /* ... */ }
+
+// Modal blocks until answered
+const ok = await vscode.window.showWarningMessage(
+  'This cannot be undone.',
+  { modal: true },
+  'Proceed'
+);
+
+// MessageItem objects let you attach metadata
+const picked = await vscode.window.showErrorMessage(
+  'Port in use.',
+  { title: 'Retry' }, { title: 'Ignore', isCloseAffordance: true }
+);</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Levels</h3>
+        <ul>
+          <li><code>showInformationMessage</code></li>
+          <li><code>showWarningMessage</code></li>
+          <li><code>showErrorMessage</code></li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Options</h3>
+        <ul>
+          <li>Strings &rarr; buttons</li>
+          <li><code>{ modal: true }</code> forces a response</li>
+          <li><code>MessageItem</code> &mdash; <code>title</code>, <code>isCloseAffordance</code></li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Tip</h3>
+        <p>Always <code>await</code> the result &mdash; the promise is how you learn which button was pressed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 06 — window: QUICK PICK ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">05</span>
+    <h2><code>window</code> &mdash; Quick Pick</h2>
+  </div>
+  <p>The Quick Pick is VS Code's searchable dropdown. Use <code>showQuickPick</code> for the simple case, or <code>createQuickPick</code> when you need full control.</p>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber"><h3 class="a">Simple &mdash; <code>showQuickPick</code></h3></div>
+      <pre><code class="language-typescript">// From an array of strings
+const fruit = await vscode.window.showQuickPick(
+  ['Apple', 'Banana', 'Cherry'],
+  { placeHolder: 'Pick a fruit' }
+);
+
+// From rich QuickPickItems
+const items: vscode.QuickPickItem[] = [
+  { label: '$(file) Open File', description: 'Ctrl+O',
+    detail: 'Open a file from disk' },
+  { label: '$(search) Find',    description: 'Ctrl+F' },
+];
+const chosen = await vscode.window.showQuickPick(items, {
+  matchOnDescription: true, canPickMany: false,
+});
+chosen?.label;  // selected item</code></pre>
+    </div>
+    <div>
+      <div class="card green"><h3 class="g">Rich &mdash; <code>createQuickPick</code></h3></div>
+      <pre><code class="language-typescript">const qp = vscode.window.createQuickPick();
+qp.placeholder = 'Type to filter…';
+qp.items = [
+  { label: 'main.ts',  description: 'src/' },
+  { label: 'utils.ts', description: 'src/lib/' },
+];
+qp.onDidChangeValue(v => { /* live filter / fetch */ });
+qp.onDidAccept(() => {
+  const sel = qp.selectedItems[0];
+  vscode.window.showInformationMessage(sel.label);
+  qp.hide();
+});
+qp.onDidHide(() => qp.dispose());
+qp.show();</code></pre>
+      <div class="card purple" style="margin-top:.3em;">
+        <h3 class="p"><code>QuickPickItem</code></h3>
+        <p><code>label</code> (with <code>$(codicon)</code>) &middot; <code>description</code> (greyed, inline) &middot; <code>detail</code> (second line).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 07 — window: INPUT BOX ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">06</span>
+    <h2><code>window</code> &mdash; Input Box</h2>
+  </div>
+  <p>Prompt the user for free text with <code>showInputBox</code>. <code>validateInput</code> runs on every keystroke &mdash; return a string to show an error, or <code>undefined</code> / <code>null</code> to accept.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-typescript">const name = await vscode.window.showInputBox({
+  prompt: 'Name your new component',
+  placeHolder: 'e.g. UserCard',
+  value: 'MyComponent',          // pre-filled default
+  ignoreFocusOut: true,          // survive focus loss
+  validateInput: (text) => {
+    if (!text.trim()) return 'Name cannot be empty';
+    if (!/^[A-Z]/.test(text))
+      return 'Components must start with a capital letter';
+    return undefined;            // valid
+  },
+});
+
+if (name === undefined) {
+  return;  // user pressed Escape
+}
+vscode.window.showInformationMessage(`Creating ${name}…`);</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a"><code>InputBoxOptions</code></h3>
+        <ul>
+          <li><code>prompt</code> &mdash; the label text</li>
+          <li><code>placeHolder</code> &mdash; ghost hint</li>
+          <li><code>value</code> &mdash; initial contents</li>
+          <li><code>password</code> &mdash; masks input</li>
+          <li><code>ignoreFocusOut</code> &mdash; keep open</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g"><code>validateInput</code></h3>
+        <ul>
+          <li>Runs on every change</li>
+          <li>Return <code>string</code> &rarr; error message</li>
+          <li>Return <code>undefined</code> &rarr; valid</li>
+          <li>May be <code>async</code> (returns a promise)</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.4em;">
+        <h3 class="r">Escape</h3>
+        <p>Resolves to <code>undefined</code> &mdash; always check before proceeding.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 08 — window: STATUS BAR ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">07</span>
+    <h2><code>window</code> &mdash; Status Bar</h2>
+  </div>
+  <p>Create a persistent item with <code>createStatusBarItem(alignment, priority)</code>. Set <code>.text</code> (with <code>$(codicon)</code> icons), wire a <code>.command</code>, then call <code>.show()</code>.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-typescript">const item = vscode.window.createStatusBarItem(
+  vscode.StatusBarAlignment.Right,  // Left | Right
+  100                               // priority (higher = further left)
+);
+
+item.text = '$(rocket) Deploy';     // codicon + label
+item.tooltip = 'Deploy to staging';
+item.command = 'myExt.deploy';      // click → runs command
+item.backgroundColor =
+  new vscode.ThemeColor('statusBarItem.warningBackground');
+item.show();
+
+context.subscriptions.push(item);   // dispose on deactivate
+
+// Update it later, e.g. from an event
+item.text = '$(sync~spin) Deploying…';</code></pre>
+      <svg class="diagram" viewBox="0 0 540 56" width="540" height="56" style="margin-top:.3em;">
+        <rect x="2" y="14" width="536" height="28" rx="4" fill="#181824" stroke="#2a2a3a" stroke-width="1"/>
+        <!-- left items -->
+        <text x="16" y="32" fill="#8888a8" font-family="JetBrains Mono" font-size="11">$(source-control) main*</text>
+        <text x="150" y="32" fill="#8888a8" font-family="JetBrains Mono" font-size="11">$(error) 0  $(warning) 2</text>
+        <!-- our item, highlighted, on the right -->
+        <rect x="384" y="16" width="150" height="24" rx="3" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="459" y="32" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="11">&#x2197; Deploy</text>
+        <text x="270" y="11" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">VS Code status bar — Alignment.Right, priority 100</text>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Alignment &amp; Priority</h3>
+        <ul>
+          <li><code>StatusBarAlignment.Left</code> / <code>.Right</code></li>
+          <li>Higher priority sits closer to the centre</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Properties</h3>
+        <ul>
+          <li><code>.text</code> &mdash; supports <code>$(icon)</code> codicons</li>
+          <li><code>.tooltip</code>, <code>.command</code></li>
+          <li><code>.color</code> / <code>.backgroundColor</code> via <code>ThemeColor</code></li>
+          <li><code>.show()</code> / <code>.hide()</code></li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Codicons</h3>
+        <p>Animate with <code>~spin</code>, e.g. <code>$(sync~spin)</code>. Browse the full set in the codicon reference.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 09 — window: PROGRESS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">08</span>
+    <h2><code>window</code> &mdash; Progress &amp; Long Tasks</h2>
+  </div>
+  <p>Wrap any async work in <code>withProgress</code>. VS Code shows a spinner or bar and resolves when your callback's promise settles. Report incremental updates via <code>progress.report</code>.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-typescript">await vscode.window.withProgress(
+  {
+    location: vscode.ProgressLocation.Notification,
+    title: 'Indexing project',
+    cancellable: true,
+  },
+  async (progress, token) => {
+    const files = await vscode.workspace.findFiles('**/*.ts');
+    const step = 100 / files.length;
+
+    for (const [i, file] of files.entries()) {
+      if (token.isCancellationRequested) break;
+
+      progress.report({
+        increment: step,                  // adds to the bar (0–100)
+        message: `${i + 1}/${files.length} ${file.path}`,
+      });
+      await indexFile(file);
+    }
+  }
+);</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a"><code>ProgressLocation</code></h3>
+        <ul>
+          <li><code>.Notification</code> &mdash; toast with bar</li>
+          <li><code>.Window</code> &mdash; spinner in status bar</li>
+          <li><code>.SourceControl</code> &mdash; in the SCM view</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g"><code>progress.report</code></h3>
+        <ul>
+          <li><code>increment</code> &mdash; percentage to add</li>
+          <li><code>message</code> &mdash; live status line</li>
+          <li>Omit <code>increment</code> for indeterminate</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Cancellation</h3>
+        <p>Set <code>cancellable: true</code>, then poll <code>token.isCancellationRequested</code> in your loop.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 10 — workspace: FOLDERS & FILES ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">09</span>
+    <h2><code>workspace</code> &mdash; Folders &amp; Files</h2>
+  </div>
+  <p>The <code>workspace</code> namespace describes the folders the user has open and lets you find, open and configure files across them.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-typescript">// Open folders (undefined if none)
+const folders = vscode.workspace.workspaceFolders;
+const root = folders?.[0].uri;          // a vscode.Uri
+
+// Glob for files (respects .gitignore by default)
+const tsFiles = await vscode.workspace.findFiles(
+  '**/*.ts',            // include glob
+  '**/node_modules/**', // exclude glob
+  100                   // max results
+);
+
+// Open a document (does not show it in an editor)
+const doc = await vscode.workspace.openTextDocument(tsFiles[0]);
+const docFromString = await vscode.workspace.openTextDocument({
+  language: 'json', content: '{ "ok": true }',
+});
+
+// Read settings (extension + user + workspace merged)
+const cfg = vscode.workspace.getConfiguration('myExt');
+const max = cfg.get<number>('maxItems', 50);   // with default
+await cfg.update('maxItems', 100,
+  vscode.ConfigurationTarget.Workspace);</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Folders</h3>
+        <ul>
+          <li><code>workspaceFolders</code> &mdash; array or <code>undefined</code></li>
+          <li>Each has a <code>uri</code>, <code>name</code>, <code>index</code></li>
+          <li><code>getWorkspaceFolder(uri)</code> resolves owner</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Finding &amp; Opening</h3>
+        <ul>
+          <li><code>findFiles(include, exclude, max)</code></li>
+          <li><code>openTextDocument(uri | options)</code></li>
+          <li>Show it with <code>window.showTextDocument(doc)</code></li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Configuration</h3>
+        <ul>
+          <li><code>getConfiguration('section')</code></li>
+          <li><code>.get</code> / <code>.update</code> / <code>.has</code></li>
+          <li>Listen via <code>onDidChangeConfiguration</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 11 — TextDocument & TextEditor ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">10</span>
+    <h2><code>TextDocument</code> &amp; <code>TextEditor</code></h2>
+  </div>
+  <p>A <span class="a"><code>TextDocument</code></span> is the file's content model; a <span class="g"><code>TextEditor</code></span> is a view onto it, carrying the selection. Positions are zero-based.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-typescript">const editor = vscode.window.activeTextEditor;
+if (!editor) return;                 // no editor focused
+
+const doc = editor.document;
+const fullText = doc.getText();      // entire file as string
+const lineCount = doc.lineCount;
+const langId = doc.languageId;       // 'typescript', etc.
+
+// The current selection (a Range of two Positions)
+const sel: vscode.Selection = editor.selection;
+const selectedText = doc.getText(sel);
+const cursor: vscode.Position = sel.active;   // line, character
+
+// Build positions and ranges explicitly
+const start = new vscode.Position(0, 0);
+const end   = new vscode.Position(2, 10);
+const range = new vscode.Range(start, end);
+const firstThreeLines = doc.getText(range);
+
+// Inspect a single line
+const line = doc.lineAt(cursor.line);
+line.text;                 // the line's string
+line.isEmptyOrWhitespace;  // boolean
+line.range;                // a Range covering it</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a"><code>TextDocument</code></h3>
+        <ul>
+          <li><code>getText(range?)</code>, <code>lineAt(n)</code></li>
+          <li><code>lineCount</code>, <code>languageId</code>, <code>uri</code></li>
+          <li><code>isDirty</code>, <code>save()</code></li>
+          <li><code>offsetAt</code> / <code>positionAt</code></li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g"><code>TextEditor</code></h3>
+        <ul>
+          <li><code>document</code>, <code>selection</code>, <code>selections</code></li>
+          <li><code>visibleRanges</code>, <code>revealRange()</code></li>
+          <li><code>edit(...)</code> &mdash; mutate the buffer</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p"><code>Position</code> / <code>Range</code></h3>
+        <p>Both are <span class="a">immutable</span>. A <code>Selection</code> is a <code>Range</code> with <code>anchor</code> and <code>active</code> ends.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 12 — EDITING TEXT ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">11</span>
+    <h2>Editing Text</h2>
+  </div>
+  <p>For the <span class="g">active editor</span>, use <code>editor.edit()</code>. For changes spanning <span class="p">multiple files</span> (or applied without focus), build a <code>WorkspaceEdit</code> and apply it.</p>
+  <div class="cols cols-2">
+    <div>
+      <div class="card green"><h3 class="g">Single editor &mdash; <code>editor.edit</code></h3></div>
+      <pre><code class="language-typescript">const editor = vscode.window.activeTextEditor!;
+await editor.edit(editBuilder => {
+  // Insert at a Position
+  editBuilder.insert(
+    new vscode.Position(0, 0), '// header\n'
+  );
+  // Replace a Range
+  editBuilder.replace(editor.selection, 'REPLACED');
+  // Delete a Range
+  editBuilder.delete(
+    new vscode.Range(5, 0, 6, 0)
+  );
+});
+// All edits in one builder = one undo step</code></pre>
+      <div class="card amber" style="margin-top:.3em;">
+        <h3 class="a">Scope</h3>
+        <p>Operates on the <span class="g">visible, active</span> editor only. Atomic &amp; undoable as a unit.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple"><h3 class="p">Multi-file &mdash; <code>WorkspaceEdit</code></h3></div>
+      <pre><code class="language-typescript">const edit = new vscode.WorkspaceEdit();
+
+edit.insert(uriA, new vscode.Position(0, 0), '// A\n');
+edit.replace(uriB,
+  new vscode.Range(1, 0, 1, 5), 'hello');
+edit.delete(uriC, new vscode.Range(0, 0, 1, 0));
+
+// Can also create / rename / delete whole files
+edit.createFile(newUri, { ignoreIfExists: true });
+edit.renameFile(oldUri, newUri);
+
+const applied = await vscode.workspace.applyEdit(edit);</code></pre>
+      <div class="card blue" style="margin-top:.3em;">
+        <h3 class="b">Scope</h3>
+        <p>Spans <span class="p">many files</span>, no editor needed. Powers refactors, rename providers and code actions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 13 — FILE SYSTEM & EVENTS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">12</span>
+    <h2>The File System &amp; Events</h2>
+  </div>
+  <p>Use <code>workspace.fs</code> for raw file I/O (works on remote/virtual file systems), and the event APIs to react as documents change.</p>
+  <div class="cols cols-2">
+    <div>
+      <pre><code class="language-typescript">const fs = vscode.workspace.fs;
+
+// Read → returns a Uint8Array
+const bytes = await fs.readFile(uri);
+const text  = new TextDecoder().decode(bytes);
+
+// Write ← expects a Uint8Array
+await fs.writeFile(uri,
+  new TextEncoder().encode('hello\n'));
+
+// Metadata, dirs, copy, delete
+const info = await fs.stat(uri);       // FileStat
+await fs.createDirectory(dirUri);
+await fs.delete(uri, { recursive: true });
+
+// Watch a glob for create/change/delete
+const watcher =
+  vscode.workspace.createFileSystemWatcher('**/*.ts');
+watcher.onDidCreate(uri => { /* … */ });
+watcher.onDidChange(uri => { /* … */ });
+watcher.onDidDelete(uri => { /* … */ });
+
+// Document lifecycle events
+vscode.workspace.onDidSaveTextDocument(doc => {});
+vscode.workspace.onDidChangeTextDocument(e => {
+  e.document; e.contentChanges; // what changed
+});
+// Remember: push every watcher/listener to subscriptions</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a"><code>workspace.fs</code></h3>
+        <ul>
+          <li><code>readFile</code> / <code>writeFile</code> &mdash; <code>Uint8Array</code></li>
+          <li><code>stat</code>, <code>readDirectory</code>, <code>copy</code>, <code>delete</code></li>
+          <li>Encode/decode with <code>TextEncoder</code>/<code>TextDecoder</code></li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Events</h3>
+        <ul>
+          <li><code>createFileSystemWatcher(glob)</code></li>
+          <li><code>onDidSaveTextDocument</code></li>
+          <li><code>onDidChangeTextDocument</code></li>
+          <li>All return <code>Disposable</code>s</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Extension State</h3>
+        <ul>
+          <li><code>context.globalState</code> &mdash; across windows</li>
+          <li><code>context.workspaceState</code> &mdash; per workspace</li>
+          <li><code>context.secrets</code> &mdash; encrypted store</li>
+          <li><code>context.extensionUri</code> &mdash; bundled assets</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 14 — SUMMARY ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">13</span>
+    <h2>Summary &amp; Further Reading</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Key Takeaways</h3>
+        <ul>
+          <li>The <code>vscode</code> module groups APIs into namespaces &mdash; <code>window</code>, <code>workspace</code>, <code>commands</code>, <code>languages</code>&hellip;</li>
+          <li>Everything you register is a <code>Disposable</code> &rarr; push to <code>context.subscriptions</code></li>
+          <li><code>window</code> drives all UI: messages, Quick Pick, Input Box, status bar, progress</li>
+          <li><code>workspace</code> finds files, reads config, and exposes <code>fs</code> + events</li>
+          <li>Edit with <code>editor.edit()</code> (one file) or <code>WorkspaceEdit</code> (many)</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">The Through-Line</h3>
+        <div class="ss-row">
+          <span class="ss-node active">window</span>
+          <span class="ss-arrow">&rarr;</span>
+          <span class="ss-node active">workspace</span>
+          <span class="ss-arrow">&rarr;</span>
+          <span class="ss-node">editor</span>
+          <span class="ss-arrow">&rarr;</span>
+          <span class="ss-node">fs</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3 class="b">Hands-On Exercise</h3>
+        <p>Build a command that:</p>
+        <ul>
+          <li><code>findFiles</code> &rarr; feed results into a <span class="a">Quick Pick</span></li>
+          <li><code>openTextDocument</code> + <code>showTextDocument</code> the chosen file</li>
+          <li>Use <code>editor.edit()</code> to <span class="g">insert a timestamped header</span> at the top</li>
+          <li>Register it, and push the <code>Disposable</code> to <code>subscriptions</code></li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Further Reading</h3>
+        <ul>
+          <li><span class="b">VS Code API Reference</span> &mdash; code.visualstudio.com/api/references/vscode-api</li>
+          <li><span class="b">Extension Capabilities</span> &mdash; code.visualstudio.com/api/extension-capabilities/overview</li>
+          <li><span class="b">Codicon Reference</span> &mdash; for <code>$(icon)</code> names</li>
+        </ul>
+      </div>
+      <div class="card red" style="margin-top:.4em;">
+        <h3 class="r">Next</h3>
+        <p><span class="a">Part 4 &mdash; Webviews &amp; Language Features:</span> custom UI panels, completion, hovers, diagnostics and code actions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  transition: 'fade',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  center: false,
+  width: 1100,
+  height: 900,
+  margin: 0.01,
+  plugins: [RevealHighlight],
+  highlight: { theme: 'monokai' }
+});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>

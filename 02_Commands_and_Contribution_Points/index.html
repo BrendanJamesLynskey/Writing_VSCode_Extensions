@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing VS Code Extensions — Part 2: Commands &amp; Contribution Points</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root {
+    --amber:  #f5a623;
+    --green:  #4ecb8d;
+    --purple: #a78bfa;
+    --blue:   #60a5fa;
+    --red:    #f87171;
+    --bg:     #0a0a0f;
+    --bg2:    #10101a;
+    --bg3:    #181824;
+    --border: #2a2a3a;
+    --text:   #e8e8f0;
+    --muted:  #8888a8;
+  }
+
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { background: transparent; }
+
+  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal h1 { font-size: 1.6em; color: var(--amber); line-height: 1.1; }
+  .reveal h2 { font-size: 1.1em; color: var(--amber); margin-bottom: .2em; }
+  .reveal h3 { font-size: .78em; color: var(--green); margin-bottom: .15em; }
+  .reveal p  { font-size: .56em; line-height: 1.45; color: var(--text); }
+  .reveal li { font-size: .54em; line-height: 1.45; margin-bottom: .1em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .72em; }
+  .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
+                 border-radius: 6px; padding: .3em .5em; margin: .25em 0; }
+  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #cdd6f4; }
+
+  /* ── slide chrome ── */
+  .slide-hdr {
+    display: flex; align-items: center; gap: .4em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .2em; margin-bottom: .3em;
+  }
+  .slide-hdr .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .42em; font-weight: 500;
+    color: var(--bg); background: var(--amber);
+    padding: .1em .4em; border-radius: 3px;
+    letter-spacing: .04em;
+  }
+  .slide-hdr h2 { margin: 0; font-size: .95em; }
+
+  /* ── two-column ── */
+  .cols   { display: grid; gap: .5em; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-6040 { grid-template-columns: 6fr 4fr; }
+  .cols-4060 { grid-template-columns: 4fr 6fr; }
+
+  /* ── cards ── */
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 6px; padding: .35em .6em;
+  }
+  .card.amber { border-left: 3px solid var(--amber); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.purple{ border-left: 3px solid var(--purple); }
+  .card.blue  { border-left: 3px solid var(--blue); }
+  .card.red   { border-left: 3px solid var(--red); }
+  .card h3 { font-size: .64em; margin: 0 0 .12em; }
+  .card p  { font-size: .52em; margin: 0; color: #b8b8d0; }
+  .card ul { margin: 0; padding-left: 1em; }
+  .card li { font-size: .52em; color: #b8b8d0; margin-bottom: .02em; }
+
+  /* ── table ── */
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .5em; }
+  .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
+                     padding: .2em .4em; border: 1px solid var(--border); text-align: left; }
+  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #ccc; }
+  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+
+  /* ── accent spans ── */
+  .a  { color: var(--amber); font-weight: 600; }
+  .g  { color: var(--green); font-weight: 600; }
+  .p  { color: var(--purple); font-weight: 600; }
+  .b  { color: var(--blue); font-weight: 600; }
+  .r  { color: var(--red); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── SVG graph diagrams ── */
+  svg.diagram { display: block; margin: 0 auto; overflow: visible; }
+
+  /* ── pill badges ── */
+  .pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: .44em; padding: .08em .4em; border-radius: 99px;
+    border: 1px solid; margin: 0 .08em;
+  }
+  .pill.amber { color: var(--amber); border-color: var(--amber); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.purple{ color: var(--purple); border-color: var(--purple); }
+  .pill.blue  { color: var(--blue); border-color: var(--blue); }
+
+  /* ── footer — hidden; was overlapping scrollable content ── */
+  .reveal .slide-footer { display: none; }
+  /* title slide special */
+  .title-slide h1 { font-size: 1.8em; }
+  .title-slide .subtitle {
+    font-size: .7em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-weight: 300; letter-spacing: .04em; margin: .3em 0 .6em;
+  }
+  .title-slide .meta { font-size: .48em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── super-step animator ── */
+  .ss-row {
+    display: flex; gap: .25em; align-items: center;
+    margin: .1em 0; font-size: .55em; font-family: 'JetBrains Mono', monospace;
+  }
+  .ss-node {
+    padding: .2em .55em; border-radius: 5px; font-size: .9em;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  }
+  .ss-node.active { background: #1a2a1a; border-color: var(--green); color: var(--green); }
+  .ss-node.done   { background: #1a1a2a; border-color: var(--purple); color: var(--purple); }
+  .ss-arrow { color: var(--amber); }
+  .ss-label { font-size: .8em; color: var(--muted); margin-left: .3em; }
+
+  /* reduce default margins */
+  .reveal ul, .reveal ol { margin: .15em 0 .15em 1em; }
+.reveal .slides > section { display: flex !important; flex-direction: column !important; overflow-y: auto !important; align-items: stretch !important; justify-content: flex-start !important; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+
+<!-- ═══════════════════════════════ SLIDE 01 — TITLE ═══════════════════════════════ -->
+<section class="title-slide" data-background-color="#0a0a0f">
+  <div style="text-align:left; max-width:820px; margin:0 auto; padding: 1em 0;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">
+      TUTORIAL SERIES &middot; PART 2 OF 5
+    </div>
+    <h1>Writing VS Code Extensions</h1>
+    <div class="subtitle">Part 2 — Commands &amp; Contribution Points</div>
+    <div style="width:60px; height:3px; background:var(--amber); margin-bottom:1.4em;"></div>
+    <div style="display:flex; gap:1.2em; flex-wrap:wrap; margin-bottom:1em;">
+      <span class="pill amber">contributes</span>
+      <span class="pill green">Commands</span>
+      <span class="pill purple">Keybindings</span>
+      <span class="pill blue">Menus</span>
+      <span class="pill amber">Settings</span>
+    </div>
+    <div class="ss-row" style="margin-top:0.6em;">
+      <span class="ss-node active">Declare (package.json)</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node active">Register (extension.ts)</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node done">Invoke</span>
+    </div>
+    <p style="max-width:620px; color:#a0a0c0; font-size:.56em; line-height:1.5; margin-top:1em;">
+      How extensions surface functionality in the editor &mdash; declaring contribution points in the manifest and wiring them to runtime code
+    </p>
+    <div class="meta" style="margin-top:1.4em;">
+      Declare &nbsp;&middot;&nbsp; Register &nbsp;&middot;&nbsp; Invoke &nbsp;&middot;&nbsp; Gate
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 02 — AGENDA ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">01</span>
+    <h2>Topics</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">The contributes Map</h3>
+        <ul>
+          <li>Declarative manifest vs imperative code</li>
+          <li>The <code>commands</code> contribution</li>
+          <li>Activation events deep dive</li>
+          <li>The Command Palette</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:0.5em;">
+        <h3 class="g">Bindings &amp; Menus</h3>
+        <ul>
+          <li>Keybindings &amp; chords</li>
+          <li>Menus &amp; menu groups</li>
+          <li><code>when</code> clause contexts</li>
+          <li>Custom contexts via <code>setContext</code></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Settings &amp; Views</h3>
+        <ul>
+          <li>The <code>configuration</code> contribution</li>
+          <li>Reading settings in code</li>
+          <li>Views &amp; view containers (teaser)</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:0.5em;">
+        <h3 class="b">Wrap-Up</h3>
+        <ul>
+          <li>Other contribution points</li>
+          <li>Hands-on exercise</li>
+          <li>Further reading</li>
+          <li>Next: Part 3 &mdash; the Extension API</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 03 — THE contributes MAP ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">02</span>
+    <h2>The <code>contributes</code> Map</h2>
+  </div>
+  <p>Almost everything an extension adds to VS Code is <span class="a">declared statically</span> in the <code>contributes</code> object of <code>package.json</code> &mdash; then <span class="g">backed at runtime</span> by code in <code>extension.ts</code>.</p>
+  <div class="cols cols-6040">
+    <div>
+      <svg class="diagram" viewBox="0 0 520 300" width="520" height="300">
+        <!-- package.json side -->
+        <rect x="5" y="35" width="200" height="250" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
+        <text x="105" y="25" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="13" font-weight="700">package.json</text>
+        <text x="105" y="55" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">"contributes": {</text>
+        <rect x="20" y="68" width="170" height="26" rx="4" fill="#0e0e18" stroke="#60a5fa" stroke-width="1"/>
+        <text x="105" y="85" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="9">commands</text>
+        <rect x="20" y="100" width="170" height="26" rx="4" fill="#0e0e18" stroke="#a78bfa" stroke-width="1"/>
+        <text x="105" y="117" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="9">keybindings</text>
+        <rect x="20" y="132" width="170" height="26" rx="4" fill="#0e0e18" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="105" y="149" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">menus</text>
+        <rect x="20" y="164" width="170" height="26" rx="4" fill="#0e0e18" stroke="#f5a623" stroke-width="1"/>
+        <text x="105" y="181" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">configuration</text>
+        <rect x="20" y="196" width="170" height="26" rx="4" fill="#0e0e18" stroke="#f87171" stroke-width="1"/>
+        <text x="105" y="213" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="9">views</text>
+        <text x="105" y="240" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">declarative UI</text>
+        <text x="105" y="270" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">}</text>
+        <!-- arrow declare -->
+        <line x1="207" y1="100" x2="270" y2="100" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+        <text x="238" y="92" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">declare</text>
+        <!-- VS Code UI side -->
+        <rect x="275" y="35" width="160" height="120" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="355" y="25" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display" font-size="13" font-weight="700">VS Code UI</text>
+        <text x="355" y="60" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Command Palette</text>
+        <text x="355" y="78" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Menus &amp; context</text>
+        <text x="355" y="96" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Keybindings</text>
+        <text x="355" y="114" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Settings UI</text>
+        <text x="355" y="132" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Activity Bar views</text>
+        <!-- extension.ts side -->
+        <rect x="275" y="185" width="160" height="100" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="355" y="175" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display" font-size="13" font-weight="700">extension.ts</text>
+        <text x="355" y="212" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">activate(ctx) {</text>
+        <text x="355" y="232" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">registerCommand(</text>
+        <text x="355" y="248" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8">'myExt.hello', fn)</text>
+        <text x="355" y="268" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">}</text>
+        <!-- arrow invoke -->
+        <line x1="355" y1="155" x2="355" y2="183" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+        <text x="408" y="172" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">invoke</text>
+        <!-- register link from commands to extension.ts -->
+        <line x1="190" y1="81" x2="290" y2="200" stroke="#4ecb8d" stroke-width="0.9" stroke-dasharray="3"/>
+        <text x="225" y="155" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="7" transform="rotate(40 225 155)">register</text>
+        <defs>
+          <marker id="arrowAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f5a623"/></marker>
+          <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
+        </defs>
+      </svg>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Declare</h3>
+        <p>Static JSON in <code>contributes</code>. VS Code reads it <em>without running your code</em>, so palette entries, menus and settings appear immediately on install.</p>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Register</h3>
+        <p>Runtime code in <code>activate()</code> supplies the <em>behaviour</em> &mdash; e.g. <code>commands.registerCommand</code> binds a declared command ID to a handler.</p>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">The split matters</h3>
+        <p>A command declared but not registered shows in the palette but errors on invoke. A command registered but not declared works in code but is invisible in the UI.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 04 — THE commands CONTRIBUTION ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">03</span>
+    <h2>The <code>commands</code> Contribution</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <h3 class="a">Declare in package.json</h3>
+      <pre><code class="language-json">{
+  "contributes": {
+    "commands": [
+      {
+        "command": "myExt.helloWorld",
+        "title": "Hello World",
+        "category": "My Extension",
+        "icon": "$(rocket)",
+        "enablement": "editorHasSelection"
+      }
+    ]
+  }
+}</code></pre>
+    </div>
+    <div>
+      <h3 class="g">Register in extension.ts</h3>
+      <pre><code class="language-typescript">import * as vscode from 'vscode';
+
+export function activate(
+  context: vscode.ExtensionContext
+) {
+  const disposable =
+    vscode.commands.registerCommand(
+      'myExt.helloWorld',
+      () => {
+        vscode.window.showInformationMessage(
+          'Hello World from My Extension!'
+        );
+      }
+    );
+
+  context.subscriptions.push(disposable);
+}</code></pre>
+    </div>
+  </div>
+  <div class="cols cols-2" style="margin-top:.2em;">
+    <div class="card amber">
+      <h3 class="a">title &amp; category</h3>
+      <p>In the palette the entry shows as <span class="mono">My Extension: Hello World</span> &mdash; <code>category</code> is the prefix, <code>title</code> the label. The ID itself is never shown to users.</p>
+    </div>
+    <div class="card green">
+      <h3 class="g">icon &amp; enablement</h3>
+      <p><code>icon</code> uses a <span class="mono">$(codicon)</span> reference (or light/dark paths) for toolbar buttons. <code>enablement</code> greys the command out when its <code>when</code>-style clause is false.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 05 — ACTIVATION EVENTS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">04</span>
+    <h2>Activation Events Deep Dive</h2>
+  </div>
+  <p>Extensions are <span class="a">lazily loaded</span>. <code>activationEvents</code> in <code>package.json</code> tells VS Code <em>when</em> to run your <code>activate()</code> &mdash; keeping startup fast.</p>
+  <div class="cols cols-6040">
+    <div>
+      <table>
+        <thead>
+          <tr><th>Event</th><th>Fires when&hellip;</th><th>Use for</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>onCommand:myExt.foo</code></td><td>The command is invoked</td><td>Most commands</td></tr>
+          <tr><td><code>onLanguage:python</code></td><td>A file of that language opens</td><td>Language tooling</td></tr>
+          <tr><td><code>onStartupFinished</code></td><td>Shortly after the window loads</td><td>Background setup</td></tr>
+          <tr><td><code>workspaceContains:**/*.foo</code></td><td>A matching file exists in the folder</td><td>Project-specific tools</td></tr>
+          <tr><td><code>onView:myView</code></td><td>A contributed view becomes visible</td><td>Tree / webview views</td></tr>
+          <tr><td><code>onUri</code></td><td>A <code>vscode://</code> URI targets the extension</td><td>Deep links / auth callbacks</td></tr>
+          <tr><td><code>onDebug</code></td><td>A debug session starts</td><td>Debug adapters</td></tr>
+          <tr><td><code>*</code></td><td>On startup, always</td><td>Avoid &mdash; slows the editor</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card green">
+        <h3 class="g">Auto-derived events</h3>
+        <p>Since VS Code 1.74, an <code>onCommand</code> event is <span class="a">generated automatically</span> for every command in <code>contributes.commands</code>. Modern generators (<code>yo code</code>) ship an empty <code>activationEvents</code> array.</p>
+      </div>
+      <div class="card amber" style="margin-top:.4em;">
+        <h3 class="a">Likewise auto-derived</h3>
+        <ul>
+          <li><code>onLanguage</code> from contributed <code>languages</code></li>
+          <li><code>onView</code> / <code>onWebviewPanel</code> from contributed views</li>
+          <li>Debugger and custom-editor events</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Rule of thumb</h3>
+        <p>Activate as <em>late</em> as possible. Never use <code>*</code> unless you genuinely must run on every window.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 06 — THE COMMAND PALETTE ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">05</span>
+    <h2>The Command Palette</h2>
+  </div>
+  <p>The palette (<span class="mono">Ctrl/Cmd+Shift+P</span>) is the primary surface for commands. Typing <code>&gt;</code> switches it into command mode (the default when opened with the shortcut).</p>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">How a command surfaces</h3>
+        <ul>
+          <li>Every entry in <code>contributes.commands</code> appears by default</li>
+          <li>Shown as <span class="mono">Category: Title</span>, sorted &amp; fuzzy-matched</li>
+          <li>Recently used commands float to the top</li>
+          <li>A bound keybinding is shown on the right</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">The <code>&gt;</code> prefix</h3>
+        <p>The Quick Open widget is shared: no prefix = files, <code>&gt;</code> = commands, <code>@</code> = symbols, <code>:</code> = go to line. Your commands live behind <code>&gt;</code>.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Gating palette visibility</h3>
+        <p>To hide a command from the palette unless a condition holds, add a <code>commandPalette</code> entry under <code>menus</code> with a <code>when</code> clause:</p>
+      </div>
+      <pre><code class="language-json">"menus": {
+  "commandPalette": [
+    {
+      "command": "myExt.formatPython",
+      "when": "editorLangId == python"
+    }
+  ]
+}</code></pre>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Note</h3>
+        <p>A <code>commandPalette</code> <code>when</code> only controls <em>visibility</em>; use <code>enablement</code> on the command to grey it out instead of hiding it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 07 — KEYBINDINGS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">06</span>
+    <h2>Keybindings Contribution</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-json">{
+  "contributes": {
+    "keybindings": [
+      {
+        "command": "myExt.helloWorld",
+        "key": "ctrl+alt+h",
+        "mac": "cmd+alt+h",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "myExt.formatPython",
+        "key": "ctrl+k ctrl+f",
+        "when": "editorLangId == python"
+      }
+    ]
+  }
+}</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">The fields</h3>
+        <ul>
+          <li><code>command</code> &mdash; the ID to run</li>
+          <li><code>key</code> &mdash; Windows/Linux binding</li>
+          <li><code>mac</code> / <code>linux</code> / <code>win</code> &mdash; platform overrides</li>
+          <li><code>when</code> &mdash; context gate for the binding</li>
+          <li><code>args</code> &mdash; optional argument passed to the command</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Chords</h3>
+        <p>Two-stroke bindings use a space: <code>ctrl+k ctrl+c</code>. The first chord shows a pending indicator in the status bar.</p>
+      </div>
+      <div class="card red" style="margin-top:.4em;">
+        <h3 class="r">Don't override defaults</h3>
+        <p>Avoid hijacking built-in keys. Prefer the <code>ctrl+k</code> prefix space, always set a <code>when</code> clause, and let users rebind freely.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 08 — MENUS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">07</span>
+    <h2>Menus Contribution</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-json">"menus": {
+  "editor/context": [
+    {
+      "command": "myExt.formatPython",
+      "when": "editorLangId == python",
+      "group": "1_modification@1"
+    }
+  ],
+  "editor/title": [
+    {
+      "command": "myExt.preview",
+      "when": "resourceExtname == .md",
+      "group": "navigation@1"
+    }
+  ],
+  "explorer/context": [
+    { "command": "myExt.analyse", "group": "2_workspace" }
+  ],
+  "view/title": [
+    { "command": "myExt.refresh", "when": "view == myView",
+      "group": "navigation" }
+  ]
+}</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Common menu IDs</h3>
+        <ul>
+          <li><code>commandPalette</code> &mdash; palette visibility</li>
+          <li><code>editor/context</code> &mdash; right-click in editor</li>
+          <li><code>editor/title</code> &mdash; editor tab toolbar</li>
+          <li><code>explorer/context</code> &mdash; file explorer</li>
+          <li><code>view/title</code> &mdash; a view's header</li>
+          <li><code>view/item/context</code> &mdash; tree item right-click</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Groups &amp; ordering</h3>
+        <ul>
+          <li>Named groups sort alphabetically: <code>navigation</code> first, then <code>1_modification</code>, <code>2_workspace</code>&hellip;</li>
+          <li><code>@1</code>, <code>@2</code> set order <em>within</em> a group</li>
+          <li><code>navigation</code> renders as inline icons in title bars</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 09 — when CLAUSE CONTEXTS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">08</span>
+    <h2><code>when</code> Clause Contexts</h2>
+  </div>
+  <p>The <code>when</code> clause is a small <span class="a">boolean expression language</span> evaluated against the editor's current state. It gates keybindings, menus and view visibility.</p>
+  <div class="cols cols-6040">
+    <div>
+      <table>
+        <thead>
+          <tr><th>Context key</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>editorLangId == 'python'</code></td><td>Active editor's language</td></tr>
+          <tr><td><code>editorHasSelection</code></td><td>Text is selected</td></tr>
+          <tr><td><code>editorTextFocus</code></td><td>Focus is in a text editor</td></tr>
+          <tr><td><code>resourceExtname == .md</code></td><td>File extension of the resource</td></tr>
+          <tr><td><code>resourceScheme == file</code></td><td>URI scheme of the resource</td></tr>
+          <tr><td><code>view == myView</code></td><td>The focused view's ID</td></tr>
+          <tr><td><code>viewItem == folder</code></td><td>A tree item's <code>contextValue</code></td></tr>
+          <tr><td><code>isLinux</code> / <code>isMac</code> / <code>isWindows</code></td><td>Host platform</td></tr>
+        </tbody>
+      </table>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Operators</h3>
+        <p><code>&amp;&amp;</code> and, <code>||</code> or, <code>!</code> not, <code>==</code> / <code>!=</code>, <code>=~</code> regex, <code>in</code>. Example: <code>editorLangId == python &amp;&amp; editorHasSelection</code>.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Custom contexts</h3>
+        <p>Set your own boolean context from code, then reference it in any <code>when</code> clause:</p>
+      </div>
+      <pre><code class="language-typescript">// In extension.ts
+vscode.commands.executeCommand(
+  'setContext',
+  'myExt.isAuthed',
+  true
+);</code></pre>
+      <pre><code class="language-json">// In package.json
+{
+  "command": "myExt.sync",
+  "when": "myExt.isAuthed"
+}</code></pre>
+      <div class="card amber" style="margin-top:.4em;">
+        <h3 class="a">Tip</h3>
+        <p>Keep custom keys namespaced (<code>myExt.*</code>) and update them whenever the underlying state changes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 10 — CONFIGURATION / SETTINGS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">09</span>
+    <h2>Configuration / Settings Contribution</h2>
+  </div>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-json">"configuration": {
+  "title": "My Extension",
+  "properties": {
+    "myExt.maxItems": {
+      "type": "number",
+      "default": 20,
+      "minimum": 1,
+      "description": "Maximum items to show.",
+      "scope": "resource"
+    },
+    "myExt.logLevel": {
+      "type": "string",
+      "default": "info",
+      "enum": ["off", "info", "debug"],
+      "enumDescriptions": [
+        "No logging",
+        "Standard logging",
+        "Verbose logging"
+      ],
+      "description": "Logging verbosity.",
+      "scope": "window"
+    },
+    "myExt.enableTelemetry": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send anonymous usage data.",
+      "scope": "application"
+    }
+  }
+}</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Property shape</h3>
+        <ul>
+          <li><code>type</code> &mdash; <code>string</code>, <code>number</code>, <code>boolean</code>, <code>array</code>, <code>object</code></li>
+          <li><code>default</code> &mdash; value when unset</li>
+          <li><code>description</code> / <code>markdownDescription</code></li>
+          <li><code>enum</code> + <code>enumDescriptions</code> &mdash; fixed choices</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">scope</h3>
+        <ul>
+          <li><code>application</code> &mdash; user-global only</li>
+          <li><code>window</code> &mdash; user or workspace</li>
+          <li><code>resource</code> &mdash; per folder / file (also <code>language-overridable</code>)</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">Keys are namespaced</h3>
+        <p>Always prefix with your extension name (<code>myExt.*</code>) so settings group neatly in the Settings UI.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 11 — READING SETTINGS IN CODE ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">10</span>
+    <h2>Reading Settings in Code</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <pre><code class="language-typescript">import * as vscode from 'vscode';
+
+// Read a value (typed, with fallback)
+const config =
+  vscode.workspace.getConfiguration('myExt');
+const max = config.get&lt;number&gt;('maxItems', 20);
+const level =
+  config.get&lt;string&gt;('logLevel', 'info');
+
+// Update a value
+await config.update(
+  'logLevel',
+  'debug',
+  vscode.ConfigurationTarget.Workspace
+);
+
+// React to changes
+vscode.workspace.onDidChangeConfiguration(e =&gt; {
+  if (e.affectsConfiguration('myExt.logLevel')) {
+    reconfigureLogger();
+  }
+});</code></pre>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">getConfiguration</h3>
+        <p>Pass the section prefix to scope reads. <code>.get&lt;T&gt;(key, default)</code> returns the effective value after merging user, workspace and folder settings.</p>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">update</h3>
+        <ul>
+          <li><code>ConfigurationTarget.Global</code> &mdash; user settings</li>
+          <li><code>.Workspace</code> &mdash; <code>.vscode/settings.json</code></li>
+          <li><code>.WorkspaceFolder</code> &mdash; specific folder</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.4em;">
+        <h3 class="p">onDidChangeConfiguration</h3>
+        <p>Fires on any settings change. Guard with <code>e.affectsConfiguration('myExt.x')</code> so you only react to <em>your</em> keys.</p>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Pass a resource</h3>
+        <p>For <code>resource</code>-scoped settings, pass a URI: <code>getConfiguration('myExt', uri)</code> to read the folder-specific value.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 12 — VIEWS & VIEW CONTAINERS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">11</span>
+    <h2>Views &amp; View Containers</h2>
+  </div>
+  <p>Add a custom panel to the <span class="a">Activity Bar</span> by contributing a view <em>container</em> plus the <em>views</em> inside it. A teaser here &mdash; tree data providers come in <span class="p">Part 4</span>.</p>
+  <div class="cols cols-6040">
+    <div>
+      <pre><code class="language-json">"viewsContainers": {
+  "activitybar": [
+    {
+      "id": "myExt-explorer",
+      "title": "My Extension",
+      "icon": "resources/icon.svg"
+    }
+  ]
+},
+"views": {
+  "myExt-explorer": [
+    {
+      "id": "myExt.itemsView",
+      "name": "Items",
+      "icon": "$(list-tree)",
+      "contextualTitle": "My Extension Items"
+    }
+  ]
+}</code></pre>
+      <div class="card green" style="margin-top:.3em;">
+        <h3 class="g">Two parts</h3>
+        <p><code>viewsContainers</code> creates the Activity Bar entry; <code>views</code> populates it. The container <code>id</code> is the key that links them.</p>
+      </div>
+    </div>
+    <div>
+      <svg class="diagram" viewBox="0 0 280 290" width="280" height="290">
+        <!-- window frame -->
+        <rect x="5" y="5" width="270" height="280" rx="6" fill="#0e0e18" stroke="#2a2a3a" stroke-width="1"/>
+        <!-- activity bar -->
+        <rect x="5" y="5" width="44" height="280" rx="6" fill="#181824" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="27" y="22" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="7">Activity</text>
+        <!-- default icons -->
+        <rect x="16" y="36" width="22" height="22" rx="4" fill="#0e0e18" stroke="#8888a8" stroke-width="1"/>
+        <rect x="16" y="66" width="22" height="22" rx="4" fill="#0e0e18" stroke="#8888a8" stroke-width="1"/>
+        <rect x="16" y="96" width="22" height="22" rx="4" fill="#0e0e18" stroke="#8888a8" stroke-width="1"/>
+        <!-- our custom icon (highlighted) -->
+        <rect x="14" y="128" width="26" height="26" rx="4" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1.6"/>
+        <text x="27" y="146" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="13">&#9683;</text>
+        <line x1="14" y1="141" x2="6" y2="141" stroke="#4ecb8d" stroke-width="2"/>
+        <text x="27" y="172" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="6">your</text>
+        <text x="27" y="181" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="6">icon</text>
+        <!-- side panel -->
+        <rect x="55" y="15" width="210" height="260" rx="4" fill="#181824" stroke="#4ecb8d" stroke-width="1.2"/>
+        <text x="68" y="34" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">MY EXTENSION</text>
+        <!-- view header -->
+        <rect x="62" y="44" width="196" height="20" rx="3" fill="#0e0e18" stroke="#2a2a3a"/>
+        <text x="70" y="58" fill="#e8e8f0" font-family="JetBrains Mono" font-size="8">Items</text>
+        <text x="248" y="58" text-anchor="end" fill="#8888a8" font-family="JetBrains Mono" font-size="9">&#8635;</text>
+        <!-- tree items -->
+        <text x="74" y="84" fill="#b8b8d0" font-family="JetBrains Mono" font-size="8">&#9656; Group A</text>
+        <text x="86" y="102" fill="#8888a8" font-family="JetBrains Mono" font-size="8">item-1</text>
+        <text x="86" y="118" fill="#8888a8" font-family="JetBrains Mono" font-size="8">item-2</text>
+        <text x="74" y="138" fill="#b8b8d0" font-family="JetBrains Mono" font-size="8">&#9656; Group B</text>
+        <text x="86" y="156" fill="#8888a8" font-family="JetBrains Mono" font-size="8">item-3</text>
+        <text x="68" y="262" fill="#8888a8" font-family="JetBrains Mono" font-size="7">view: myExt.itemsView</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 13 — OTHER CONTRIBUTION POINTS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">12</span>
+    <h2>Other Contribution Points</h2>
+  </div>
+  <p>The <code>contributes</code> map has many more keys. A quick tour of the most common &mdash; each is purely declarative JSON.</p>
+  <table>
+    <thead>
+      <tr><th>Contribution point</th><th>What it adds</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>languages</code></td><td>Registers a language ID, file extensions, and a configuration file (brackets, comments)</td></tr>
+      <tr><td><code>grammars</code></td><td>TextMate grammar for syntax highlighting, mapped to a language scope</td></tr>
+      <tr><td><code>snippets</code></td><td>Code snippets for a language, loaded from a JSON snippets file</td></tr>
+      <tr><td><code>themes</code></td><td>Colour themes &mdash; a label, <code>uiTheme</code> base, and a theme JSON path</td></tr>
+      <tr><td><code>iconThemes</code></td><td>File icon themes that style the explorer and tabs</td></tr>
+      <tr><td><code>jsonValidation</code></td><td>Associates a JSON schema with a file pattern for validation &amp; IntelliSense</td></tr>
+      <tr><td><code>customEditors</code></td><td>Webview-based editors for custom file types (e.g. an image or CAD viewer)</td></tr>
+      <tr><td><code>walkthroughs</code></td><td>Step-by-step Getting Started pages shown on the Welcome screen</td></tr>
+    </tbody>
+  </table>
+  <div class="card amber" style="margin-top:.4em;">
+    <h3 class="a">Discover them all</h3>
+    <p>The full, authoritative list lives in the Contribution Points reference. Many of these (<code>customEditors</code>, <code>walkthroughs</code>, views) also need runtime registration &mdash; covered in later parts.</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 14 — SUMMARY & FURTHER READING ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">13</span>
+    <h2>Summary &amp; Further Reading</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Key Takeaways</h3>
+        <ul>
+          <li><code>contributes</code> declares UI; <code>activate()</code> registers behaviour</li>
+          <li>Commands need both a declaration and a <code>registerCommand</code></li>
+          <li>Activation events keep startup lazy &mdash; <code>onCommand</code> is auto-derived</li>
+          <li>Keybindings, menus &amp; palette all gate on <code>when</code> clauses</li>
+          <li>Menu <code>group</code> + <code>@n</code> control placement &amp; order</li>
+          <li>Settings live in <code>configuration.properties</code>, read via <code>getConfiguration</code></li>
+          <li>View containers add panels to the Activity Bar</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Hands-On Exercise</h3>
+        <ul>
+          <li>Declare a command and register a handler that shows a message</li>
+          <li>Add a <code>keybindings</code> entry (try a <code>ctrl+k</code> chord)</li>
+          <li>Add an <code>editor/context</code> menu entry gated by a <code>when</code> clause (e.g. <code>editorLangId == markdown</code>)</li>
+          <li>Add a boolean setting and read it in the handler</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Further Reading</h3>
+        <ul>
+          <li><span class="b">Contribution Points</span> &mdash; code.visualstudio.com/api/references/contribution-points</li>
+          <li><span class="b">Activation Events</span> &mdash; code.visualstudio.com/api/references/activation-events</li>
+          <li><span class="b">when clause contexts</span> &mdash; code.visualstudio.com/api/references/when-clause-contexts</li>
+          <li><span class="b">Commands guide</span> &mdash; code.visualstudio.com/api/extension-guides/command</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Tools Worth Knowing</h3>
+        <p><code>yo code</code> (scaffold) &middot; <code>vsce</code> (package &amp; publish) &middot; the Extension Development Host (F5) &middot; the built-in <span class="mono">Developer: Inspect Context Keys</span> command for debugging <code>when</code> clauses.</p>
+      </div>
+      <div class="ss-row" style="margin-top:.5em;">
+        <span class="ss-node done">Part 2 done</span>
+        <span class="ss-arrow">&rarr;</span>
+        <span class="ss-node active">Part 3 — The Extension API in Depth</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/monokai.min.css">
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  transition: 'fade',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  center: false,
+  width: 1100,
+  height: 900,
+  margin: 0.01,
+  plugins: [RevealHighlight],
+  highlight: { theme: 'monokai' }
+});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>

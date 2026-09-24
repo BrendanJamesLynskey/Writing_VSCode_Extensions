@@ -11,17 +11,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
   :root {
-    --amber:  #f5a623;
-    --green:  #4ecb8d;
-    --purple: #a78bfa;
-    --blue:   #60a5fa;
-    --red:    #f87171;
-    --bg:     #0a0a0f;
-    --bg2:    #10101a;
-    --bg3:    #181824;
-    --border: #2a2a3a;
-    --text:   #e8e8f0;
-    --muted:  #8888a8;
+    --amber:  #efba4d;
+    --green:  #9dcba3;
+    --purple: #c2aef4;
+    --blue:   #93c6eb;
+    --red:    #f0846a;
+    --bg:     #17193a;
+    --bg2:    #1c1f44;
+    --bg3:    #21254d;
+    --border: #363c6c;
+    --text:   #efece6;
+    --muted:  #9093ba;
   }
 
   .reveal-viewport { background: var(--bg); }
@@ -37,7 +37,7 @@
   .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .72em; }
   .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
                  border-radius: 6px; padding: .3em .5em; margin: .25em 0; }
-  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #cdd6f4; }
+  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #dedde3; }
 
   /* ── slide chrome ── */
   .slide-hdr {
@@ -72,16 +72,16 @@
   .card.blue  { border-left: 3px solid var(--blue); }
   .card.red   { border-left: 3px solid var(--red); }
   .card h3 { font-size: .64em; margin: 0 0 .12em; }
-  .card p  { font-size: .52em; margin: 0; color: #b8b8d0; }
+  .card p  { font-size: .52em; margin: 0; color: #c3c4dc; }
   .card ul { margin: 0; padding-left: 1em; }
-  .card li { font-size: .52em; color: #b8b8d0; margin-bottom: .02em; }
+  .card li { font-size: .52em; color: #c3c4dc; margin-bottom: .02em; }
 
   /* ── table ── */
   .reveal table { width: 100%; border-collapse: collapse; font-size: .5em; }
   .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
                      padding: .2em .4em; border: 1px solid var(--border); text-align: left; }
-  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #ccc; }
-  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #d4d4e1; }
+  .reveal table tr:nth-child(even) td { background: #1b1d41; }
 
   /* ── accent spans ── */
   .a  { color: var(--amber); font-weight: 600; }
@@ -124,8 +124,8 @@
     padding: .2em .55em; border-radius: 5px; font-size: .9em;
     background: var(--bg3); border: 1px solid var(--border); color: var(--text);
   }
-  .ss-node.active { background: #1a2a1a; border-color: var(--green); color: var(--green); }
-  .ss-node.done   { background: #1a1a2a; border-color: var(--purple); color: var(--purple); }
+  .ss-node.active { background: #333c41; border-color: var(--green); color: var(--green); }
+  .ss-node.done   { background: #232851; border-color: var(--purple); color: var(--purple); }
   .ss-arrow { color: var(--amber); }
   .ss-label { font-size: .8em; color: var(--muted); margin-left: .3em; }
 
@@ -140,7 +140,7 @@
 
 
 <!-- ═══════════════════════════════ SLIDE 01 — TITLE ═══════════════════════════════ -->
-<section class="title-slide" data-background-color="#0a0a0f">
+<section class="title-slide" data-background-color="#17193a">
   <div style="text-align:left; max-width:820px; margin:0 auto; padding: 1em 0;">
     <div style="font-family:'JetBrains Mono',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">
       TUTORIAL SERIES &middot; PART 4 OF 5
@@ -164,7 +164,7 @@
       <span class="ss-arrow">&rarr;</span>
       <span class="ss-node done">LSP</span>
     </div>
-    <p style="max-width:620px; color:#a0a0c0; font-size:.56em; line-height:1.5; margin-top:1em;">
+    <p style="max-width:620px; color:#abadcd; font-size:.56em; line-height:1.5; margin-top:1em;">
       Build custom UI in the sidebar and panels, then teach the editor about your language &mdash; completions, hovers, diagnostics and, ultimately, a language server
     </p>
     <div class="meta" style="margin-top:1.4em;">
@@ -175,7 +175,7 @@
 
 
 <!-- ═══════════════════════════════ SLIDE 02 — TOPICS ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">01</span>
     <h2>Topics</h2>
@@ -227,7 +227,7 @@
 
 
 <!-- ═══════════════════════════════ SLIDE 03 — CUSTOM UI OPTIONS ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">02</span>
     <h2>Custom UI &mdash; Choosing a Surface</h2>
@@ -259,7 +259,7 @@
 
 
 <!-- ═══════════════════════════════ SLIDE 04 — TREE VIEW API ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">03</span>
     <h2>Tree View API</h2>
@@ -320,36 +320,36 @@ vscode.window.registerTreeDataProvider('myView', provider);
   </div>
   <svg class="diagram" viewBox="0 0 900 150" width="900" height="150" style="margin-top:.3em;">
     <!-- sidebar frame -->
-    <rect x="10" y="10" width="250" height="130" rx="6" fill="#0e0e18" stroke="#2a2a3a" stroke-width="1.2"/>
-    <rect x="10" y="10" width="250" height="22" rx="6" fill="#181824" stroke="#2a2a3a" stroke-width="1"/>
-    <text x="24" y="25" fill="#8888a8" font-family="JetBrains Mono" font-size="9">MY VIEW</text>
+    <rect x="10" y="10" width="250" height="130" rx="6" fill="#1b1d41" stroke="#363c6c" stroke-width="1.2"/>
+    <rect x="10" y="10" width="250" height="22" rx="6" fill="#21254d" stroke="#363c6c" stroke-width="1"/>
+    <text x="24" y="25" fill="#9093ba" font-family="JetBrains Mono" font-size="9">MY VIEW</text>
     <!-- tree rows -->
-    <text x="24" y="50" fill="#f5a623" font-family="JetBrains Mono" font-size="10">&#9660; src</text>
-    <text x="44" y="68" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">&#9660; commands</text>
-    <text x="64" y="86" fill="#cdd6f4" font-family="JetBrains Mono" font-size="10">&#9679; hello.ts</text>
-    <text x="64" y="104" fill="#cdd6f4" font-family="JetBrains Mono" font-size="10">&#9679; open.ts</text>
-    <text x="24" y="122" fill="#f5a623" font-family="JetBrains Mono" font-size="10">&#9658; tests</text>
+    <text x="24" y="50" fill="#efba4d" font-family="JetBrains Mono" font-size="10">&#9660; src</text>
+    <text x="44" y="68" fill="#9dcba3" font-family="JetBrains Mono" font-size="10">&#9660; commands</text>
+    <text x="64" y="86" fill="#dedde3" font-family="JetBrains Mono" font-size="10">&#9679; hello.ts</text>
+    <text x="64" y="104" fill="#dedde3" font-family="JetBrains Mono" font-size="10">&#9679; open.ts</text>
+    <text x="24" y="122" fill="#efba4d" font-family="JetBrains Mono" font-size="10">&#9658; tests</text>
     <!-- mapping -->
-    <line x1="265" y1="75" x2="320" y2="75" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#tvArrow)"/>
-    <rect x="325" y="42" width="250" height="66" rx="6" fill="#181824" stroke="#a78bfa" stroke-width="1.2"/>
-    <text x="450" y="62" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="10">getChildren(root)</text>
-    <text x="450" y="80" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">returns NodeItem[]</text>
-    <text x="450" y="96" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">each &rarr; getTreeItem()</text>
-    <line x1="580" y1="75" x2="635" y2="75" stroke="#4ecb8d" stroke-width="1.2" marker-end="url(#tvArrowG)"/>
-    <rect x="640" y="42" width="250" height="66" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.2"/>
-    <text x="765" y="62" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="10">TreeItem</text>
-    <text x="765" y="80" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">label, icon, command,</text>
-    <text x="765" y="96" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">collapsibleState, contextValue</text>
+    <line x1="265" y1="75" x2="320" y2="75" stroke="#c2aef4" stroke-width="1.2" marker-end="url(#tvArrow)"/>
+    <rect x="325" y="42" width="250" height="66" rx="6" fill="#21254d" stroke="#c2aef4" stroke-width="1.2"/>
+    <text x="450" y="62" text-anchor="middle" fill="#c2aef4" font-family="JetBrains Mono" font-size="10">getChildren(root)</text>
+    <text x="450" y="80" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">returns NodeItem[]</text>
+    <text x="450" y="96" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">each &rarr; getTreeItem()</text>
+    <line x1="580" y1="75" x2="635" y2="75" stroke="#9dcba3" stroke-width="1.2" marker-end="url(#tvArrowG)"/>
+    <rect x="640" y="42" width="250" height="66" rx="6" fill="#21254d" stroke="#9dcba3" stroke-width="1.2"/>
+    <text x="765" y="62" text-anchor="middle" fill="#9dcba3" font-family="JetBrains Mono" font-size="10">TreeItem</text>
+    <text x="765" y="80" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">label, icon, command,</text>
+    <text x="765" y="96" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">collapsibleState, contextValue</text>
     <defs>
-      <marker id="tvArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#a78bfa"/></marker>
-      <marker id="tvArrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
+      <marker id="tvArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#c2aef4"/></marker>
+      <marker id="tvArrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#9dcba3"/></marker>
     </defs>
   </svg>
 </section>
 
 
 <!-- ═══════════════════════════════ SLIDE 05 — TREE VIEW INTERACTIONS ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">04</span>
     <h2>Tree View Interactions</h2>
@@ -406,7 +406,7 @@ vscode.window.registerTreeDataProvider('myView', provider);
 
 
 <!-- ═══════════════════════════════ SLIDE 06 — WEBVIEW API ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">05</span>
     <h2>Webview API</h2>
@@ -464,7 +464,7 @@ function getHtml(webview: vscode.Webview): string {
 
 
 <!-- ═══════════════════════════════ SLIDE 07 — WEBVIEW MESSAGING ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">06</span>
     <h2>Webview &harr; Extension Messaging</h2>
@@ -472,25 +472,25 @@ function getHtml(webview: vscode.Webview): string {
   <p>The extension host and the webview iframe talk only by <span class="a">passing serialisable messages</span>. There is no shared memory &mdash; this channel is the entire bridge.</p>
   <svg class="diagram" viewBox="0 0 900 175" width="900" height="175">
     <!-- extension host -->
-    <rect x="20" y="40" width="300" height="95" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="170" y="64" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="14" font-weight="700">Extension Host</text>
-    <text x="170" y="86" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8.5">panel.webview.postMessage(msg)</text>
-    <text x="170" y="104" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8.5">webview.onDidReceiveMessage(cb)</text>
-    <text x="170" y="122" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">Node.js process &middot; full vscode API</text>
+    <rect x="20" y="40" width="300" height="95" rx="6" fill="#21254d" stroke="#efba4d" stroke-width="1.5"/>
+    <text x="170" y="64" text-anchor="middle" fill="#efba4d" font-family="Playfair Display" font-size="14" font-weight="700">Extension Host</text>
+    <text x="170" y="86" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8.5">panel.webview.postMessage(msg)</text>
+    <text x="170" y="104" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8.5">webview.onDidReceiveMessage(cb)</text>
+    <text x="170" y="122" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">Node.js process &middot; full vscode API</text>
     <!-- webview -->
-    <rect x="580" y="40" width="300" height="95" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="730" y="64" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display" font-size="14" font-weight="700">Webview (iframe)</text>
-    <text x="730" y="86" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8.5">vscode.postMessage(msg)</text>
-    <text x="730" y="104" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8.5">window.addEventListener('message')</text>
-    <text x="730" y="122" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">browser sandbox &middot; no vscode API</text>
+    <rect x="580" y="40" width="300" height="95" rx="6" fill="#21254d" stroke="#9dcba3" stroke-width="1.5"/>
+    <text x="730" y="64" text-anchor="middle" fill="#9dcba3" font-family="Playfair Display" font-size="14" font-weight="700">Webview (iframe)</text>
+    <text x="730" y="86" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8.5">vscode.postMessage(msg)</text>
+    <text x="730" y="104" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8.5">window.addEventListener('message')</text>
+    <text x="730" y="122" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">browser sandbox &middot; no vscode API</text>
     <!-- arrows -->
-    <line x1="320" y1="72" x2="580" y2="72" stroke="#f5a623" stroke-width="1.5" marker-end="url(#mArrowA)"/>
-    <text x="450" y="64" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="9">postMessage &rarr; 'message' event</text>
-    <line x1="580" y1="104" x2="320" y2="104" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#mArrowG)"/>
-    <text x="450" y="124" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="9">acquireVsCodeApi().postMessage &rarr; onDidReceiveMessage</text>
+    <line x1="320" y1="72" x2="580" y2="72" stroke="#efba4d" stroke-width="1.5" marker-end="url(#mArrowA)"/>
+    <text x="450" y="64" text-anchor="middle" fill="#efba4d" font-family="JetBrains Mono" font-size="9">postMessage &rarr; 'message' event</text>
+    <line x1="580" y1="104" x2="320" y2="104" stroke="#9dcba3" stroke-width="1.5" marker-end="url(#mArrowG)"/>
+    <text x="450" y="124" text-anchor="middle" fill="#9dcba3" font-family="JetBrains Mono" font-size="9">acquireVsCodeApi().postMessage &rarr; onDidReceiveMessage</text>
     <defs>
-      <marker id="mArrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f5a623"/></marker>
-      <marker id="mArrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
+      <marker id="mArrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#efba4d"/></marker>
+      <marker id="mArrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#9dcba3"/></marker>
     </defs>
   </svg>
   <div class="cols cols-2" style="margin-top:.2em;">
@@ -522,7 +522,7 @@ window.addEventListener('message', event =&gt; {
 
 
 <!-- ═══════════════════════════════ SLIDE 08 — WEBVIEW SECURITY ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">07</span>
     <h2>Webview Security &amp; Resources</h2>
@@ -585,7 +585,7 @@ const panel = vscode.window.createWebviewPanel(
 
 
 <!-- ═══════════════════════════════ SLIDE 09 — WEBVIEW VIEWS ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">08</span>
     <h2>Webview Views (Sidebar)</h2>
@@ -647,27 +647,27 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 <!-- ═══════════════════════════════ SLIDE 10 — LANGUAGE FEATURES OVERVIEW ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">09</span>
     <h2>Language Features &mdash; The Provider Model</h2>
   </div>
   <p>You don't push features into the editor. You <span class="a">register a provider</span> against a <code>DocumentSelector</code>; VS Code calls it back when the user types, hovers, or invokes an action.</p>
   <svg class="diagram" viewBox="0 0 900 120" width="900" height="120">
-    <rect x="20" y="35" width="200" height="55" rx="6" fill="#181824" stroke="#60a5fa" stroke-width="1.4"/>
-    <text x="120" y="58" text-anchor="middle" fill="#60a5fa" font-family="Playfair Display" font-size="13" font-weight="700">User Action</text>
-    <text x="120" y="76" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">type &middot; hover &middot; F12 &middot; save</text>
-    <line x1="220" y1="62" x2="350" y2="62" stroke="#f5a623" stroke-width="1.5" marker-end="url(#lfArrow)"/>
-    <rect x="350" y="35" width="200" height="55" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.4"/>
-    <text x="450" y="58" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="13" font-weight="700">VS Code Editor</text>
-    <text x="450" y="76" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">matches DocumentSelector</text>
-    <line x1="550" y1="62" x2="680" y2="62" stroke="#4ecb8d" stroke-width="1.5" marker-end="url(#lfArrowG)"/>
-    <rect x="680" y="35" width="200" height="55" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.4"/>
-    <text x="780" y="58" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display" font-size="13" font-weight="700">Your Provider</text>
-    <text x="780" y="76" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">returns items / hover / range</text>
+    <rect x="20" y="35" width="200" height="55" rx="6" fill="#21254d" stroke="#93c6eb" stroke-width="1.4"/>
+    <text x="120" y="58" text-anchor="middle" fill="#93c6eb" font-family="Playfair Display" font-size="13" font-weight="700">User Action</text>
+    <text x="120" y="76" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">type &middot; hover &middot; F12 &middot; save</text>
+    <line x1="220" y1="62" x2="350" y2="62" stroke="#efba4d" stroke-width="1.5" marker-end="url(#lfArrow)"/>
+    <rect x="350" y="35" width="200" height="55" rx="6" fill="#21254d" stroke="#efba4d" stroke-width="1.4"/>
+    <text x="450" y="58" text-anchor="middle" fill="#efba4d" font-family="Playfair Display" font-size="13" font-weight="700">VS Code Editor</text>
+    <text x="450" y="76" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">matches DocumentSelector</text>
+    <line x1="550" y1="62" x2="680" y2="62" stroke="#9dcba3" stroke-width="1.5" marker-end="url(#lfArrowG)"/>
+    <rect x="680" y="35" width="200" height="55" rx="6" fill="#21254d" stroke="#9dcba3" stroke-width="1.4"/>
+    <text x="780" y="58" text-anchor="middle" fill="#9dcba3" font-family="Playfair Display" font-size="13" font-weight="700">Your Provider</text>
+    <text x="780" y="76" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">returns items / hover / range</text>
     <defs>
-      <marker id="lfArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f5a623"/></marker>
-      <marker id="lfArrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
+      <marker id="lfArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#efba4d"/></marker>
+      <marker id="lfArrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#9dcba3"/></marker>
     </defs>
   </svg>
   <div class="cols cols-3" style="margin-top:.3em;">
@@ -700,7 +700,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 <!-- ═══════════════════════════════ SLIDE 11 — INTELLISENSE ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">10</span>
     <h2>IntelliSense &mdash; Completions &amp; Hover</h2>
@@ -766,7 +766,7 @@ vscode.languages.registerHoverProvider(
 
 
 <!-- ═══════════════════════════════ SLIDE 12 — DIAGNOSTICS ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">11</span>
     <h2>Diagnostics (Linting)</h2>
@@ -830,7 +830,7 @@ context.subscriptions.push(
 
 
 <!-- ═══════════════════════════════ SLIDE 13 — LSP ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">12</span>
     <h2>Language Server Protocol (LSP)</h2>
@@ -838,28 +838,28 @@ context.subscriptions.push(
   <p>Write your language smarts <span class="a">once</span> as a server speaking the protocol, then reuse it across VS Code, Neovim and other editors. The server runs in its <span class="g">own process</span>.</p>
   <svg class="diagram" viewBox="0 0 900 215" width="900" height="215">
     <!-- client -->
-    <rect x="20" y="55" width="250" height="110" rx="6" fill="#181824" stroke="#f5a623" stroke-width="1.5"/>
-    <text x="145" y="80" text-anchor="middle" fill="#f5a623" font-family="Playfair Display" font-size="14" font-weight="700">Language Client</text>
-    <text x="145" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8.5">vscode-languageclient</text>
-    <text x="145" y="118" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">runs in the VS Code extension host</text>
-    <text x="145" y="140" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono" font-size="8.5">forwards editor events</text>
+    <rect x="20" y="55" width="250" height="110" rx="6" fill="#21254d" stroke="#efba4d" stroke-width="1.5"/>
+    <text x="145" y="80" text-anchor="middle" fill="#efba4d" font-family="Playfair Display" font-size="14" font-weight="700">Language Client</text>
+    <text x="145" y="100" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8.5">vscode-languageclient</text>
+    <text x="145" y="118" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">runs in the VS Code extension host</text>
+    <text x="145" y="140" text-anchor="middle" fill="#93c6eb" font-family="JetBrains Mono" font-size="8.5">forwards editor events</text>
     <!-- server -->
-    <rect x="630" y="55" width="250" height="110" rx="6" fill="#181824" stroke="#4ecb8d" stroke-width="1.5"/>
-    <text x="755" y="80" text-anchor="middle" fill="#4ecb8d" font-family="Playfair Display" font-size="14" font-weight="700">Language Server</text>
-    <text x="755" y="100" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8.5">vscode-languageserver</text>
-    <text x="755" y="118" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">separate process &middot; editor-agnostic</text>
-    <text x="755" y="140" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono" font-size="8.5">owns parsing &amp; analysis</text>
+    <rect x="630" y="55" width="250" height="110" rx="6" fill="#21254d" stroke="#9dcba3" stroke-width="1.5"/>
+    <text x="755" y="80" text-anchor="middle" fill="#9dcba3" font-family="Playfair Display" font-size="14" font-weight="700">Language Server</text>
+    <text x="755" y="100" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8.5">vscode-languageserver</text>
+    <text x="755" y="118" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">separate process &middot; editor-agnostic</text>
+    <text x="755" y="140" text-anchor="middle" fill="#c2aef4" font-family="JetBrains Mono" font-size="8.5">owns parsing &amp; analysis</text>
     <!-- channel -->
-    <line x1="270" y1="92" x2="630" y2="92" stroke="#f5a623" stroke-width="1.4" marker-end="url(#lspA)"/>
-    <text x="450" y="84" text-anchor="middle" fill="#f5a623" font-family="JetBrains Mono" font-size="8.5">initialize &middot; textDocument/didChange &middot; textDocument/completion</text>
-    <line x1="630" y1="128" x2="270" y2="128" stroke="#4ecb8d" stroke-width="1.4" marker-end="url(#lspG)"/>
-    <text x="450" y="146" text-anchor="middle" fill="#4ecb8d" font-family="JetBrains Mono" font-size="8.5">completion result &middot; textDocument/publishDiagnostics</text>
-    <text x="450" y="178" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="9">JSON-RPC over stdio / IPC</text>
-    <rect x="300" y="186" width="300" height="20" rx="4" fill="none" stroke="#2a2a3a" stroke-width="1" stroke-dasharray="4"/>
-    <text x="450" y="200" text-anchor="middle" fill="#8888a8" font-family="JetBrains Mono" font-size="8">one server, many editors</text>
+    <line x1="270" y1="92" x2="630" y2="92" stroke="#efba4d" stroke-width="1.4" marker-end="url(#lspA)"/>
+    <text x="450" y="84" text-anchor="middle" fill="#efba4d" font-family="JetBrains Mono" font-size="8.5">initialize &middot; textDocument/didChange &middot; textDocument/completion</text>
+    <line x1="630" y1="128" x2="270" y2="128" stroke="#9dcba3" stroke-width="1.4" marker-end="url(#lspG)"/>
+    <text x="450" y="146" text-anchor="middle" fill="#9dcba3" font-family="JetBrains Mono" font-size="8.5">completion result &middot; textDocument/publishDiagnostics</text>
+    <text x="450" y="178" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="9">JSON-RPC over stdio / IPC</text>
+    <rect x="300" y="186" width="300" height="20" rx="4" fill="none" stroke="#363c6c" stroke-width="1" stroke-dasharray="4"/>
+    <text x="450" y="200" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">one server, many editors</text>
     <defs>
-      <marker id="lspA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f5a623"/></marker>
-      <marker id="lspG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/></marker>
+      <marker id="lspA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#efba4d"/></marker>
+      <marker id="lspG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#9dcba3"/></marker>
     </defs>
   </svg>
   <div class="cols cols-2" style="margin-top:.2em;">
@@ -886,7 +886,7 @@ context.subscriptions.push(
 
 
 <!-- ═══════════════════════════════ SLIDE 14 — SUMMARY ═══════════════════════════════ -->
-<section data-background-color="#0a0a0f">
+<section data-background-color="#17193a">
   <div class="slide-hdr">
     <span class="tag">13</span>
     <h2>Summary &amp; Further Reading</h2>

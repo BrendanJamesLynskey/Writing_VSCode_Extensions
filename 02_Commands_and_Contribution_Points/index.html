@@ -6,7 +6,7 @@
 <title>Writing VS Code Extensions — Part 2: Commands &amp; Contribution Points</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,700&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
 <style>
@@ -27,14 +27,14 @@
   .reveal-viewport { background: var(--bg); }
   .reveal .slides section { background: transparent; }
 
-  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
-  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Outfit', serif; font-weight: 700; }
   .reveal h1 { font-size: 1.6em; color: var(--amber); line-height: 1.1; }
   .reveal h2 { font-size: 1.1em; color: var(--amber); margin-bottom: .2em; }
   .reveal h3 { font-size: .78em; color: var(--green); margin-bottom: .15em; }
   .reveal p  { font-size: .56em; line-height: 1.45; color: var(--text); }
   .reveal li { font-size: .54em; line-height: 1.45; margin-bottom: .1em; }
-  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .72em; }
+  .reveal code { font-family: 'Fira Code', monospace; font-size: .72em; }
   .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
                  border-radius: 6px; padding: .3em .5em; margin: .25em 0; }
   .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #dedde3; }
@@ -46,7 +46,7 @@
     padding-bottom: .2em; margin-bottom: .3em;
   }
   .slide-hdr .tag {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Fira Code', monospace;
     font-size: .42em; font-weight: 500;
     color: var(--bg); background: var(--amber);
     padding: .1em .4em; border-radius: 3px;
@@ -89,14 +89,14 @@
   .p  { color: var(--purple); font-weight: 600; }
   .b  { color: var(--blue); font-weight: 600; }
   .r  { color: var(--red); font-weight: 600; }
-  .mono { font-family: 'JetBrains Mono', monospace; }
+  .mono { font-family: 'Fira Code', monospace; }
 
   /* ── SVG graph diagrams ── */
   svg.diagram { display: block; margin: 0 auto; overflow: visible; }
 
   /* ── pill badges ── */
   .pill {
-    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    display: inline-block; font-family: 'Fira Code', monospace;
     font-size: .44em; padding: .08em .4em; border-radius: 99px;
     border: 1px solid; margin: 0 .08em;
   }
@@ -110,15 +110,15 @@
   /* title slide special */
   .title-slide h1 { font-size: 1.8em; }
   .title-slide .subtitle {
-    font-size: .7em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-size: .7em; color: var(--green); font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 300; letter-spacing: .04em; margin: .3em 0 .6em;
   }
-  .title-slide .meta { font-size: .48em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .title-slide .meta { font-size: .48em; color: var(--muted); font-family: 'Fira Code', monospace; }
 
   /* ── super-step animator ── */
   .ss-row {
     display: flex; gap: .25em; align-items: center;
-    margin: .1em 0; font-size: .55em; font-family: 'JetBrains Mono', monospace;
+    margin: .1em 0; font-size: .55em; font-family: 'Fira Code', monospace;
   }
   .ss-node {
     padding: .2em .55em; border-radius: 5px; font-size: .9em;
@@ -142,7 +142,7 @@
 <!-- ═══════════════════════════════ SLIDE 01 — TITLE ═══════════════════════════════ -->
 <section class="title-slide" data-background-color="#17193a">
   <div style="text-align:left; max-width:820px; margin:0 auto; padding: 1em 0;">
-    <div style="font-family:'JetBrains Mono',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">
+    <div style="font-family:'Fira Code',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">
       TUTORIAL SERIES &middot; PART 2 OF 5
     </div>
     <h1>Writing VS Code Extensions</h1>
@@ -234,44 +234,44 @@
       <svg class="diagram" viewBox="0 0 520 300" width="520" height="300">
         <!-- package.json side -->
         <rect x="5" y="35" width="200" height="250" rx="6" fill="#21254d" stroke="#efba4d" stroke-width="1.5"/>
-        <text x="105" y="25" text-anchor="middle" fill="#efba4d" font-family="Playfair Display" font-size="13" font-weight="700">package.json</text>
-        <text x="105" y="55" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="9">"contributes": {</text>
+        <text x="105" y="25" text-anchor="middle" fill="#efba4d" font-family="Outfit" font-size="13" font-weight="700">package.json</text>
+        <text x="105" y="55" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="9">"contributes": {</text>
         <rect x="20" y="68" width="170" height="26" rx="4" fill="#1b1d41" stroke="#93c6eb" stroke-width="1"/>
-        <text x="105" y="85" text-anchor="middle" fill="#93c6eb" font-family="JetBrains Mono" font-size="9">commands</text>
+        <text x="105" y="85" text-anchor="middle" fill="#93c6eb" font-family="Fira Code" font-size="9">commands</text>
         <rect x="20" y="100" width="170" height="26" rx="4" fill="#1b1d41" stroke="#c2aef4" stroke-width="1"/>
-        <text x="105" y="117" text-anchor="middle" fill="#c2aef4" font-family="JetBrains Mono" font-size="9">keybindings</text>
+        <text x="105" y="117" text-anchor="middle" fill="#c2aef4" font-family="Fira Code" font-size="9">keybindings</text>
         <rect x="20" y="132" width="170" height="26" rx="4" fill="#1b1d41" stroke="#9dcba3" stroke-width="1"/>
-        <text x="105" y="149" text-anchor="middle" fill="#9dcba3" font-family="JetBrains Mono" font-size="9">menus</text>
+        <text x="105" y="149" text-anchor="middle" fill="#9dcba3" font-family="Fira Code" font-size="9">menus</text>
         <rect x="20" y="164" width="170" height="26" rx="4" fill="#1b1d41" stroke="#efba4d" stroke-width="1"/>
-        <text x="105" y="181" text-anchor="middle" fill="#efba4d" font-family="JetBrains Mono" font-size="9">configuration</text>
+        <text x="105" y="181" text-anchor="middle" fill="#efba4d" font-family="Fira Code" font-size="9">configuration</text>
         <rect x="20" y="196" width="170" height="26" rx="4" fill="#1b1d41" stroke="#f0846a" stroke-width="1"/>
-        <text x="105" y="213" text-anchor="middle" fill="#f0846a" font-family="JetBrains Mono" font-size="9">views</text>
-        <text x="105" y="240" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">declarative UI</text>
-        <text x="105" y="270" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="9">}</text>
+        <text x="105" y="213" text-anchor="middle" fill="#f0846a" font-family="Fira Code" font-size="9">views</text>
+        <text x="105" y="240" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">declarative UI</text>
+        <text x="105" y="270" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="9">}</text>
         <!-- arrow declare -->
         <line x1="207" y1="100" x2="270" y2="100" stroke="#efba4d" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
-        <text x="238" y="92" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">declare</text>
+        <text x="238" y="92" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">declare</text>
         <!-- VS Code UI side -->
         <rect x="275" y="35" width="160" height="120" rx="6" fill="#21254d" stroke="#93c6eb" stroke-width="1.5"/>
-        <text x="355" y="25" text-anchor="middle" fill="#93c6eb" font-family="Playfair Display" font-size="13" font-weight="700">VS Code UI</text>
-        <text x="355" y="60" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">Command Palette</text>
-        <text x="355" y="78" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">Menus &amp; context</text>
-        <text x="355" y="96" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">Keybindings</text>
-        <text x="355" y="114" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">Settings UI</text>
-        <text x="355" y="132" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">Activity Bar views</text>
+        <text x="355" y="25" text-anchor="middle" fill="#93c6eb" font-family="Outfit" font-size="13" font-weight="700">VS Code UI</text>
+        <text x="355" y="60" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">Command Palette</text>
+        <text x="355" y="78" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">Menus &amp; context</text>
+        <text x="355" y="96" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">Keybindings</text>
+        <text x="355" y="114" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">Settings UI</text>
+        <text x="355" y="132" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">Activity Bar views</text>
         <!-- extension.ts side -->
         <rect x="275" y="185" width="160" height="100" rx="6" fill="#21254d" stroke="#9dcba3" stroke-width="1.5"/>
-        <text x="355" y="175" text-anchor="middle" fill="#9dcba3" font-family="Playfair Display" font-size="13" font-weight="700">extension.ts</text>
-        <text x="355" y="212" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">activate(ctx) {</text>
-        <text x="355" y="232" text-anchor="middle" fill="#9dcba3" font-family="JetBrains Mono" font-size="8">registerCommand(</text>
-        <text x="355" y="248" text-anchor="middle" fill="#9dcba3" font-family="JetBrains Mono" font-size="8">'myExt.hello', fn)</text>
-        <text x="355" y="268" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">}</text>
+        <text x="355" y="175" text-anchor="middle" fill="#9dcba3" font-family="Outfit" font-size="13" font-weight="700">extension.ts</text>
+        <text x="355" y="212" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">activate(ctx) {</text>
+        <text x="355" y="232" text-anchor="middle" fill="#9dcba3" font-family="Fira Code" font-size="8">registerCommand(</text>
+        <text x="355" y="248" text-anchor="middle" fill="#9dcba3" font-family="Fira Code" font-size="8">'myExt.hello', fn)</text>
+        <text x="355" y="268" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">}</text>
         <!-- arrow invoke -->
         <line x1="355" y1="155" x2="355" y2="183" stroke="#9dcba3" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
-        <text x="408" y="172" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="8">invoke</text>
+        <text x="408" y="172" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="8">invoke</text>
         <!-- register link from commands to extension.ts -->
         <line x1="190" y1="81" x2="290" y2="200" stroke="#9dcba3" stroke-width="0.9" stroke-dasharray="3"/>
-        <text x="225" y="155" text-anchor="middle" fill="#9dcba3" font-family="JetBrains Mono" font-size="7" transform="rotate(40 225 155)">register</text>
+        <text x="225" y="155" text-anchor="middle" fill="#9dcba3" font-family="Fira Code" font-size="7" transform="rotate(40 225 155)">register</text>
         <defs>
           <marker id="arrowAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#efba4d"/></marker>
           <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#9dcba3"/></marker>
@@ -768,31 +768,31 @@ vscode.workspace.onDidChangeConfiguration(e =&gt; {
         <rect x="5" y="5" width="270" height="280" rx="6" fill="#1b1d41" stroke="#363c6c" stroke-width="1"/>
         <!-- activity bar -->
         <rect x="5" y="5" width="44" height="280" rx="6" fill="#21254d" stroke="#363c6c" stroke-width="1"/>
-        <text x="27" y="22" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="7">Activity</text>
+        <text x="27" y="22" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="7">Activity</text>
         <!-- default icons -->
         <rect x="16" y="36" width="22" height="22" rx="4" fill="#1b1d41" stroke="#9093ba" stroke-width="1"/>
         <rect x="16" y="66" width="22" height="22" rx="4" fill="#1b1d41" stroke="#9093ba" stroke-width="1"/>
         <rect x="16" y="96" width="22" height="22" rx="4" fill="#1b1d41" stroke="#9093ba" stroke-width="1"/>
         <!-- our custom icon (highlighted) -->
         <rect x="14" y="128" width="26" height="26" rx="4" fill="#333c41" stroke="#9dcba3" stroke-width="1.6"/>
-        <text x="27" y="146" text-anchor="middle" fill="#9dcba3" font-family="JetBrains Mono" font-size="13">&#9683;</text>
+        <text x="27" y="146" text-anchor="middle" fill="#9dcba3" font-family="Fira Code" font-size="13">&#9683;</text>
         <line x1="14" y1="141" x2="6" y2="141" stroke="#9dcba3" stroke-width="2"/>
-        <text x="27" y="172" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="6">your</text>
-        <text x="27" y="181" text-anchor="middle" fill="#9093ba" font-family="JetBrains Mono" font-size="6">icon</text>
+        <text x="27" y="172" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="6">your</text>
+        <text x="27" y="181" text-anchor="middle" fill="#9093ba" font-family="Fira Code" font-size="6">icon</text>
         <!-- side panel -->
         <rect x="55" y="15" width="210" height="260" rx="4" fill="#21254d" stroke="#9dcba3" stroke-width="1.2"/>
-        <text x="68" y="34" fill="#9dcba3" font-family="JetBrains Mono" font-size="9">MY EXTENSION</text>
+        <text x="68" y="34" fill="#9dcba3" font-family="Fira Code" font-size="9">MY EXTENSION</text>
         <!-- view header -->
         <rect x="62" y="44" width="196" height="20" rx="3" fill="#1b1d41" stroke="#363c6c"/>
-        <text x="70" y="58" fill="#efece6" font-family="JetBrains Mono" font-size="8">Items</text>
-        <text x="248" y="58" text-anchor="end" fill="#9093ba" font-family="JetBrains Mono" font-size="9">&#8635;</text>
+        <text x="70" y="58" fill="#efece6" font-family="Fira Code" font-size="8">Items</text>
+        <text x="248" y="58" text-anchor="end" fill="#9093ba" font-family="Fira Code" font-size="9">&#8635;</text>
         <!-- tree items -->
-        <text x="74" y="84" fill="#c3c4dc" font-family="JetBrains Mono" font-size="8">&#9656; Group A</text>
-        <text x="86" y="102" fill="#9093ba" font-family="JetBrains Mono" font-size="8">item-1</text>
-        <text x="86" y="118" fill="#9093ba" font-family="JetBrains Mono" font-size="8">item-2</text>
-        <text x="74" y="138" fill="#c3c4dc" font-family="JetBrains Mono" font-size="8">&#9656; Group B</text>
-        <text x="86" y="156" fill="#9093ba" font-family="JetBrains Mono" font-size="8">item-3</text>
-        <text x="68" y="262" fill="#9093ba" font-family="JetBrains Mono" font-size="7">view: myExt.itemsView</text>
+        <text x="74" y="84" fill="#c3c4dc" font-family="Fira Code" font-size="8">&#9656; Group A</text>
+        <text x="86" y="102" fill="#9093ba" font-family="Fira Code" font-size="8">item-1</text>
+        <text x="86" y="118" fill="#9093ba" font-family="Fira Code" font-size="8">item-2</text>
+        <text x="74" y="138" fill="#c3c4dc" font-family="Fira Code" font-size="8">&#9656; Group B</text>
+        <text x="86" y="156" fill="#9093ba" font-family="Fira Code" font-size="8">item-3</text>
+        <text x="68" y="262" fill="#9093ba" font-family="Fira Code" font-size="7">view: myExt.itemsView</text>
       </svg>
     </div>
   </div>

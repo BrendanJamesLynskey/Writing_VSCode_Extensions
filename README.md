@@ -39,9 +39,9 @@ Work through the parts in order. Each one ends with a hands-on exercise and poin
 
 ## Technology
 
-[Reveal.js 4.6](https://revealjs.com) · [highlight.js](https://highlightjs.org) · Playfair Display + DM Sans + JetBrains Mono
+[Reveal.js 4.6](https://revealjs.com) · [highlight.js](https://highlightjs.org) · Outfit + Plus Jakarta Sans + Fira Code
 
-Each deck is a single self-contained `index.html` — no build step, no npm, no dependencies to install. The landing page uses Space Grotesk + Inter + JetBrains Mono.
+Each deck is a single self-contained `index.html` — no build step, no npm, no dependencies to install. The landing page uses Outfit + Plus Jakarta Sans + Fira Code.
 
 ## See also
 

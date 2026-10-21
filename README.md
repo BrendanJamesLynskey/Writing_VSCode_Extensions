@@ -1,3 +1,7 @@
+<!-- portfolio-strip:start (brief 40) -->
+<sub>**Brendan Lynskey** · [Portfolio home](https://brendanjameslynskey.github.io/) · [Interactive sites](https://brendanjameslynskey.github.io/#sites)</sub>
+<!-- portfolio-strip:end -->
+
 # 🧩 Writing VS Code Extensions
 
 A **step-by-step, five-part tutorial series** on building Visual Studio Code extensions — from scaffolding an empty project to publishing a tested extension on the Marketplace. Each part is a self-contained interactive [Reveal.js](https://revealjs.com) presentation with copy-and-run code and hand-drawn diagrams.
